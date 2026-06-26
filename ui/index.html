@@ -3,591 +3,1156 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Uncolonised — Project Dashboard</title>
+<title>Uncolonised — Development Dashboard</title>
+<meta name="theme-color" content="#00D2AA">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0f0f11;
-  --surface: #1a1a1e;
-  --surface2: #242429;
-  --border: #2c2c33;
-  --text: #e4e4e7;
-  --text2: #a1a1aa;
-  --text3: #71717a;
-  --accent: #f59e0b;
-  --accent2: #10b981;
-  --accent3: #3b82f6;
-  --red: #ef4444;
-  --font: 'Inter', system-ui, -apple-system, sans-serif;
-  --mono: 'JetBrains Mono', monospace;
+  --bg:       oklch(11% 0.012 265);
+  --surface:  oklch(16% 0.015 265);
+  --surface2: oklch(21% 0.018 265);
+  --surface3: oklch(26% 0.020 265);
+  --border:   oklch(30% 0.015 265);
+  --text:     oklch(93% 0.005 265);
+  --text2:    oklch(75% 0.008 265);
+  --muted:    oklch(55% 0.010 265);
+  --accent:   oklch(72% 0.22 168);
+  --accent-d: oklch(58% 0.20 168);
+  --amber:    oklch(70% 0.18 60);
+  --violet:   oklch(65% 0.16 295);
+  --red:      oklch(62% 0.20 22);
+  --cyan:     oklch(78% 0.14 210);
+  --nav-w:    240px;
+  --ff-d: 'Space Grotesk', system-ui, sans-serif;
+  --ff-b: 'DM Sans', system-ui, sans-serif;
+  --ff-m: 'Fira Code', 'Cascadia Code', monospace;
 }
-* { margin: 0; padding: 0; box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
-body {
-  font-family: var(--font);
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-}
-::selection { background: var(--accent); color: #000; }
+body { font-family: var(--ff-b); background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; overflow-x: hidden; }
+#progress-bar { position: fixed; top: 0; left: 0; height: 2px; width: 0%; background: var(--accent); z-index: 999; transition: width 0.1s linear; }
 
-/* ── Nav ── */
-nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  background: rgba(15,15,17,.85); backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-  padding: 0 24px; height: 56px;
-  display: flex; align-items: center; gap: 24px;
-}
-nav .logo { font-weight: 700; font-size: 15px; letter-spacing: -.02em; }
-nav .logo span { color: var(--accent); }
-nav a { color: var(--text2); text-decoration: none; font-size: 13px; font-weight: 500; transition: color .2s; }
-nav a:hover { color: var(--text); }
-nav .spacer { flex: 1; }
-nav .gh-link { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 6px; background: var(--surface); border: 1px solid var(--border); font-size: 12px; color: var(--text2); text-decoration: none; transition: all .2s; }
-nav .gh-link:hover { border-color: var(--accent); color: var(--text); }
+/* Sidebar */
+#sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: var(--nav-w); background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 100; overflow-y: auto; transition: transform 0.3s cubic-bezier(0.16,1,0.3,1); }
+.sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 20px 20px 16px; border-bottom: 1px solid var(--border); }
+.logo-mark { width: 28px; height: 28px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: var(--ff-d); font-weight: 700; font-size: 14px; color: oklch(11% 0.012 265); flex-shrink: 0; }
+.logo-text { font-family: var(--ff-d); font-weight: 600; font-size: 15px; }
+.logo-ver { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.sidebar-footer { margin-top: auto; padding: 16px 20px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
+.sidebar-link { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 12.5px; color: var(--text2); text-decoration: none; transition: color 0.15s; }
+.sidebar-link:hover { color: var(--accent); }
+.sidebar-link svg { width: 14px; height: 14px; flex-shrink: 0; fill: currentColor; opacity: 0.7; }
+.sidebar-link:hover svg { opacity: 1; }
+.sidebar-divider { height: 1px; background: var(--border); margin: 2px 0; }
+.nav-section { padding: 20px 0 8px; }
+.nav-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; padding: 0 20px 8px; }
+.nav-link { display: flex; align-items: center; gap: 8px; padding: 7px 20px; font-size: 13.5px; color: var(--text2); text-decoration: none; cursor: pointer; border: none; background: none; width: 100%; text-align: left; transition: color 0.15s, background 0.15s; font-family: var(--ff-b); }
+.nav-link:hover { color: var(--text); background: var(--surface2); }
+.nav-link.active { color: var(--accent); background: oklch(72% 0.22 168 / 0.08); }
+.nav-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: var(--muted); transition: background 0.15s; }
+.nav-link.active .nav-dot { background: var(--accent); }
 
-/* ── Sections ── */
-section { padding: 80px 24px; max-width: 1100px; margin: 0 auto; }
-.section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
-h2 { font-size: 28px; font-weight: 700; letter-spacing: -.03em; margin-bottom: 16px; }
-h2 .hl { color: var(--accent); }
-p.sub { color: var(--text2); font-size: 15px; max-width: 640px; line-height: 1.7; }
+/* Main */
+#main { margin-left: var(--nav-w); min-height: 100vh; position: relative; }
+#overlay { position: fixed; inset: 0; background: var(--accent); transform: scaleY(0); transform-origin: bottom; z-index: 200; pointer-events: none; }
 
-/* ── Hero ── */
-#hero {
-  min-height: 100vh; display: flex; align-items: center;
-  padding-top: 56px; max-width: none;
-  background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(245,158,11,.06) 0%, transparent 60%),
-              radial-gradient(ellipse 60% 40% at 20% 70%, rgba(16,185,129,.04) 0%, transparent 50%);
-}
-#hero .inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
-#hero .badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 500; background: rgba(245,158,11,.12); color: var(--accent); border: 1px solid rgba(245,158,11,.2); margin-bottom: 20px; }
-#hero .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
-#hero h1 { font-size: clamp(36px,6vw,64px); font-weight: 800; letter-spacing: -.04em; line-height: 1.05; margin-bottom: 20px; }
-#hero h1 .hl { background: linear-gradient(135deg, var(--accent), #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-#hero p { font-size: 17px; color: var(--text2); max-width: 560px; line-height: 1.7; margin-bottom: 32px; }
-#hero .actions { display: flex; gap: 12px; flex-wrap: wrap; }
-.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all .2s; cursor: pointer; border: none; font-family: var(--font); }
-.btn-primary { background: var(--accent); color: #000; }
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(245,158,11,.25); }
-.btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
-.btn-secondary:hover { background: var(--surface2); border-color: var(--text3); }
-.btn-outline { background: transparent; color: var(--text2); border: 1px solid var(--border); }
-.btn-outline:hover { color: var(--text); border-color: var(--text3); }
+/* Pages */
+.page { display: none; min-height: 100vh; }
+.page.active { display: block; }
 
-/* ── Stats bar ── */
-.stats-bar {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 12px;
-  margin-top: 48px; padding: 20px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border);
-}
-.stat-item { text-align: center; }
-.stat-item .num { font-size: 28px; font-weight: 700; letter-spacing: -.03em; }
-.stat-item .num.accent { color: var(--accent); }
-.stat-item .num.accent2 { color: var(--accent2); }
-.stat-item .num.accent3 { color: var(--accent3); }
-.stat-item .label { font-size: 12px; color: var(--text3); margin-top: 2px; }
-
-/* ── Cards grid ── */
-.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap: 16px; margin-top: 32px; }
-.card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px;
-  transition: all .2s;
-}
-.card:hover { border-color: var(--text3); transform: translateY(-2px); }
-.card .icon { font-size: 24px; margin-bottom: 12px; }
-.card h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
-.card p { font-size: 13px; color: var(--text2); line-height: 1.6; }
-.card .link { display: inline-flex; align-items: center; gap: 4px; margin-top: 12px; font-size: 12px; font-weight: 500; color: var(--accent); text-decoration: none; }
-.card .link:hover { text-decoration: underline; }
-
-/* ── Architecture ── */
-.arch-flow {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  flex-wrap: wrap; margin-top: 32px; padding: 32px; background: var(--surface);
-  border-radius: 12px; border: 1px solid var(--border);
-}
-.arch-node {
-  padding: 12px 20px; border-radius: 8px; font-size: 12px; font-weight: 500;
-  text-align: center; min-width: 100px;
-}
-.arch-node.source { background: rgba(59,130,246,.15); color: #60a5fa; border: 1px solid rgba(59,130,246,.3); }
-.arch-node.bronze { background: rgba(245,158,11,.15); color: var(--accent); border: 1px solid rgba(245,158,11,.3); }
-.arch-node.silver { background: rgba(148,163,184,.15); color: #cbd5e1; border: 1px solid rgba(148,163,184,.3); }
-.arch-node.gold { background: rgba(16,185,129,.15); color: var(--accent2); border: 1px solid rgba(16,185,129,.3); }
-.arch-arrow { color: var(--text3); font-size: 18px; font-weight: 300; }
-
-/* ── Repo Map ── */
-.repo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 16px; margin-top: 32px; }
-.repo-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px;
-  transition: all .2s; text-decoration: none; color: inherit; display: block;
-}
-.repo-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-.repo-card .path { font-family: var(--mono); font-size: 12px; color: var(--accent); margin-bottom: 6px; }
-.repo-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-.repo-card p { font-size: 12px; color: var(--text3); line-height: 1.5; }
-.repo-card .files { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
-.repo-card .files span {
-  font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 4px;
-  background: var(--surface2); color: var(--text2);
+/* Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: none; }
 }
 
-/* ── Roadmap ── */
-.roadmap { position: relative; margin-top: 32px; padding-left: 32px; }
-.roadmap::before { content: ''; position: absolute; left: 11px; top: 8px; bottom: 8px; width: 2px; background: var(--border); }
-.road-item { position: relative; padding: 0 0 32px 24px; }
-.road-item::before { content: ''; position: absolute; left: -25px; top: 6px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid; }
-.road-item.done::before { background: var(--accent2); border-color: var(--accent2); }
-.road-item.current::before { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px rgba(245,158,11,.2); }
-.road-item.next::before { background: var(--surface2); border-color: var(--text3); }
-.road-item .tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-bottom: 4px; }
-.road-item.done .tag { background: rgba(16,185,129,.15); color: var(--accent2); }
-.road-item.current .tag { background: rgba(245,158,11,.15); color: var(--accent); }
-.road-item.next .tag { background: var(--surface2); color: var(--text3); }
-.road-item h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-.road-item p { font-size: 12px; color: var(--text2); line-height: 1.5; }
+/* Hero */
+.hero-section { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 80px 64px; overflow: hidden; }
+.hero-section::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 50% at 30% 20%, oklch(72% 0.22 168 / 0.06) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 70% 75%, oklch(65% 0.16 295 / 0.04) 0%, transparent 50%); z-index: 0; }
+.hero-section > * { position: relative; z-index: 1; }
+.hero-eyebrow { font-size: 11px; letter-spacing: 0.15em; font-weight: 500; color: var(--accent); text-transform: uppercase; margin-bottom: 20px; animation: fadeInUp .7s cubic-bezier(.16,1,.3,1) .1s both; }
+.hero-title { font-family: var(--ff-d); font-size: clamp(40px, 5.5vw, 72px); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; max-width: 800px; margin-bottom: 24px; animation: fadeInUp .7s cubic-bezier(.16,1,.3,1) .22s both; }
+.hero-title em { font-style: normal; color: var(--accent); }
+.hero-sub { font-size: 18px; color: var(--text2); max-width: 600px; line-height: 1.65; margin-bottom: 40px; animation: fadeInUp .65s cubic-bezier(.16,1,.3,1) .38s both; }
+.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 64px; animation: fadeInUp .6s cubic-bezier(.16,1,.3,1) .52s both; }
+.hero-stats { display: flex; gap: 48px; flex-wrap: wrap; animation: fadeInUp .6s cubic-bezier(.16,1,.3,1) .64s both; }
+.stat-item { display: flex; flex-direction: column; gap: 4px; }
+.stat-num { font-family: var(--ff-d); font-size: 28px; font-weight: 700; }
+.stat-label { font-size: 12px; color: var(--muted); }
 
-/* ── Contribution ── */
-.contribute-steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 16px; margin-top: 32px; }
-.step { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; text-align: center; }
-.step .num { width: 36px; height: 36px; border-radius: 50%; background: rgba(245,158,11,.15); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; margin: 0 auto 12px; }
-.step h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
-.step p { font-size: 12px; color: var(--text2); line-height: 1.5; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; border: none; font-family: var(--ff-b); transition: transform 0.15s, box-shadow 0.15s; }
+.btn:hover { transform: translateY(-1px); }
+.btn-primary { background: var(--accent); color: oklch(11% 0.012 265); box-shadow: 0 4px 24px oklch(72% 0.22 168 / 0.3); }
+.btn-primary:hover { box-shadow: 0 8px 32px oklch(72% 0.22 168 / 0.45); }
+.btn-ghost { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+.btn-ghost:hover { color: var(--text); border-color: var(--muted); }
 
-/* ── Footer ── */
-footer { text-align: center; padding: 48px 24px; border-top: 1px solid var(--border); color: var(--text3); font-size: 13px; }
-footer a { color: var(--accent); text-decoration: none; }
-footer a:hover { text-decoration: underline; }
+/* Content */
+.page-content { padding: 64px; max-width: 960px; }
+.page-header { margin-bottom: 48px; }
+.page-tag { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 12px; display: block; }
+.page-title { font-family: var(--ff-d); font-size: clamp(28px, 3.5vw, 44px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 16px; }
+.page-desc { font-size: 16px; color: var(--text2); line-height: 1.7; max-width: 620px; }
+.section-title { font-family: var(--ff-d); font-size: 20px; font-weight: 600; margin-bottom: 20px; margin-top: 48px; }
+.section-title:first-child { margin-top: 0; }
+.divider { height: 1px; background: var(--border); margin: 40px 0; }
 
-/* ── API Explorer ── */
-.api-bar {
-  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
-  margin-top: 16px; padding: 12px 16px; background: var(--surface);
-  border-radius: 8px; border: 1px solid var(--border);
+/* Code */
+.code-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; font-family: var(--ff-m); font-size: 13px; color: var(--text2); overflow-x: auto; line-height: 1.7; margin-bottom: 24px; }
+.code-block .comment { color: var(--muted); }
+.code-block .keyword { color: var(--accent); }
+.code-block .string { color: var(--amber); }
+.code-block .cmd { color: var(--cyan); }
+
+/* Terminal */
+.terminal { background: oklch(9% 0.010 265); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 32px; }
+.terminal-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.term-dot { width: 12px; height: 12px; border-radius: 50%; }
+.term-dot:nth-child(1) { background: var(--red); }
+.term-dot:nth-child(2) { background: var(--amber); }
+.term-dot:nth-child(3) { background: var(--accent); }
+.term-title { margin-left: auto; font-size: 11px; color: var(--muted); font-family: var(--ff-m); }
+.terminal-body { padding: 20px 24px; font-family: var(--ff-m); font-size: 13px; line-height: 2; }
+.term-line { display: flex; gap: 8px; }
+.term-prompt { color: var(--accent); user-select: none; }
+.term-out { color: var(--text2); padding-left: 20px; font-size: 12px; }
+.term-out.accent { color: var(--accent); }
+.term-out.amber { color: var(--amber); }
+
+/* Tables */
+.doc-table { width: 100%; border-collapse: collapse; margin-bottom: 32px; font-size: 13.5px; }
+.doc-table th { text-align: left; padding: 10px 16px; background: var(--surface2); color: var(--muted); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+.doc-table th:first-child { border-radius: 8px 0 0 0; }
+.doc-table th:last-child { border-radius: 0 8px 0 0; }
+.doc-table td { padding: 11px 16px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: top; }
+.doc-table tr:last-child td { border-bottom: none; }
+.doc-table tr:hover td { background: var(--surface2); color: var(--text); }
+.doc-table .mono { font-family: var(--ff-m); font-size: 12px; color: var(--cyan); }
+
+/* Tags */
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; font-family: var(--ff-m); }
+.tag-accent { background: oklch(72% 0.22 168 / 0.15); color: var(--accent); }
+.tag-amber  { background: oklch(70% 0.18 60 / 0.15);  color: var(--amber); }
+.tag-violet { background: oklch(65% 0.16 295 / 0.15); color: var(--violet); }
+.tag-red    { background: oklch(62% 0.20 22 / 0.15);  color: var(--red); }
+.tag-cyan   { background: oklch(78% 0.14 210 / 0.15); color: var(--cyan); }
+.tag-muted  { background: var(--surface3); color: var(--muted); }
+
+/* Card grid */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-bottom: 32px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; transition: border-color 0.2s, transform 0.2s; }
+.card:hover { border-color: var(--accent-d); transform: translateY(-2px); }
+.card-icon { font-size: 24px; margin-bottom: 12px; }
+.card-title { font-family: var(--ff-d); font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+.card-desc { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+/* Phase flow */
+.phase-flow { display: flex; flex-direction: column; margin-bottom: 32px; }
+.phase-step { display: flex; gap: 0; align-items: stretch; }
+.phase-connector { display: flex; flex-direction: column; align-items: center; width: 40px; flex-shrink: 0; }
+.phase-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); margin-top: 8px; flex-shrink: 0; box-shadow: 0 0 0 3px oklch(72% 0.22 168 / 0.2); }
+.phase-line { width: 2px; flex: 1; background: var(--border); margin-top: 4px; }
+.phase-step:last-child .phase-line { display: none; }
+.phase-body { flex: 1; padding: 0 0 28px 16px; }
+.phase-num { font-size: 11px; color: var(--accent); font-weight: 600; margin-bottom: 4px; font-family: var(--ff-m); }
+.phase-name { font-family: var(--ff-d); font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.phase-desc { font-size: 13.5px; color: var(--text2); line-height: 1.6; }
+
+/* Tier stack */
+.tier-stack { display: flex; flex-direction: column; margin-bottom: 32px; border-radius: 10px; border: 1px solid var(--border); overflow: hidden; }
+.tier-row { display: flex; align-items: stretch; }
+.tier-label { width: 130px; flex-shrink: 0; padding: 16px 20px; font-family: var(--ff-d); font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; text-align: center; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
+.tier-row:last-child .tier-label { border-bottom: none; }
+.tier-content { flex: 1; padding: 16px 20px; font-size: 13px; color: var(--text2); line-height: 1.5; border-bottom: 1px solid var(--border); }
+.tier-row:last-child .tier-content { border-bottom: none; }
+.tier-l0 .tier-label { background: oklch(72% 0.22 168 / 0.15); color: var(--accent); }
+.tier-l1 .tier-label { background: oklch(70% 0.18 60 / 0.15); color: var(--amber); }
+.tier-l2 .tier-label { background: oklch(65% 0.16 295 / 0.15); color: var(--violet); }
+.tier-l3 .tier-label { background: oklch(78% 0.14 210 / 0.12); color: var(--cyan); }
+
+/* Table wrap */
+.table-wrap { overflow-x: auto; margin-bottom: 32px; border-radius: 10px; border: 1px solid var(--border); }
+.table-wrap .doc-table { margin-bottom: 0; }
+.table-wrap .doc-table th:first-child, .table-wrap .doc-table th:last-child { border-radius: 0; }
+
+/* Inline code */
+code { font-family: var(--ff-m); font-size: 0.85em; background: var(--surface2); color: var(--cyan); padding: 2px 6px; border-radius: 4px; }
+
+/* API method badges */
+.method { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; font-family: var(--ff-m); letter-spacing: 0.02em; }
+.method-get { background: oklch(78% 0.14 210 / 0.15); color: var(--cyan); }
+.method-post { background: oklch(72% 0.22 168 / 0.15); color: var(--accent); }
+.method-all { background: var(--surface3); color: var(--muted); }
+
+/* Map style for repo */
+.map-file { padding: 4px 0; display: flex; align-items: baseline; gap: 8px; }
+.map-path { font-family: var(--ff-m); font-size: 12px; color: var(--accent); flex-shrink: 0; min-width: 140px; }
+.map-desc { font-size: 12.5px; color: var(--text2); line-height: 1.5; }
+.map-children { margin-left: 24px; padding-left: 12px; border-left: 1px solid var(--border); margin-bottom: 8px; }
+
+/* Human highlight */
+.human-badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 100px; background: oklch(70% 0.18 60 / 0.12); border: 1px solid oklch(70% 0.18 60 / 0.2); color: var(--amber); font-size: 11px; font-weight: 600; font-family: var(--ff-d); letter-spacing: 0.03em; }
+
+/* Mobile nav */
+#nav-toggle { display: none; position: fixed; bottom: 24px; right: 24px; width: 48px; height: 48px; border-radius: 50%; background: var(--accent); color: oklch(11% 0.012 265); border: none; font-size: 20px; cursor: pointer; z-index: 300; align-items: center; justify-content: center; box-shadow: 0 4px 16px oklch(72% 0.22 168 / 0.4); }
+#nav-overlay { display: none; position: fixed; inset: 0; background: oklch(0% 0 0 / 0.6); z-index: 99; }
+
+/* Key-value grid for DB schema */
+.kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
+.kv-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; }
+.kv-key { font-family: var(--ff-m); font-size: 12px; color: var(--cyan); margin-bottom: 2px; }
+.kv-val { font-size: 12.5px; color: var(--text2); }
+.kv-type { font-size: 10px; color: var(--muted); font-family: var(--ff-m); }
+
+/* Roadmap */
+.roadmap { position: relative; margin-top: 32px; padding-left: 36px; }
+.roadmap::before { content: ''; position: absolute; left: 15px; top: 12px; bottom: 12px; width: 2px; background: var(--border); }
+.road-item { position: relative; padding: 0 0 36px 28px; }
+.road-item:last-child { padding-bottom: 0; }
+.road-item::before { content: ''; position: absolute; left: -29px; top: 6px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--border); background: var(--surface2); }
+.road-item.done::before { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px oklch(72% 0.22 168 / 0.15); }
+.road-item.current::before { background: var(--amber); border-color: var(--amber); box-shadow: 0 0 0 4px oklch(70% 0.18 60 / 0.15); }
+.road-item.next::before { background: var(--surface3); border-color: var(--muted); }
+.road-item .tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 10px; border-radius: 4px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+.road-item.done .tag { background: oklch(72% 0.22 168 / 0.12); color: var(--accent); border: 1px solid oklch(72% 0.22 168 / 0.2); }
+.road-item.current .tag { background: oklch(70% 0.18 60 / 0.12); color: var(--amber); border: 1px solid oklch(70% 0.18 60 / 0.2); }
+.road-item.next .tag { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+.road-item h4 { font-size: 15px; font-weight: 600; font-family: var(--ff-d); margin-bottom: 4px; }
+.road-item p { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+@media (max-width: 768px) {
+  #sidebar { transform: translateX(-100%); }
+  #sidebar.open { transform: translateX(0); }
+  #main { margin-left: 0; }
+  .hero-section { padding: 60px 24px; }
+  .page-content { padding: 40px 24px; }
+  .hero-stats { gap: 24px; }
+  #nav-toggle { display: flex; }
+  #nav-overlay.open { display: block; }
+  .kv-grid { grid-template-columns: 1fr; }
 }
-.api-bar input, .api-bar select {
-  background: var(--surface2); border: 1px solid var(--border);
-  color: var(--text); border-radius: 6px; padding: 6px 12px;
-  font-size: 13px; font-family: var(--mono);
-}
-.api-bar input { flex: 1; min-width: 160px; }
-.api-bar button { padding: 6px 16px; border-radius: 6px; border: none; background: var(--accent); color: #000; font-weight: 600; font-size: 12px; cursor: pointer; font-family: var(--font); }
-.api-bar select { font-family: var(--font); }
-#api-output { margin-top: 12px; }
-#api-output pre {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 8px; padding: 16px; font-family: var(--mono);
-  font-size: 12px; line-height: 1.6; overflow-x: auto;
-  color: var(--text2); max-height: 400px; overflow-y: auto;
-}
-#api-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
-#api-table th { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text3); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
-#api-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text2); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#api-table tr:hover td { background: var(--surface); }
-.tag-badge { display: inline-block; padding: 1px 8px; border-radius: 100px; font-size: 10px; background: rgba(59,130,246,.15); color: #60a5fa; margin: 1px; }
-.type-badge { display: inline-block; padding: 1px 8px; border-radius: 100px; font-size: 10px; }
-.type-march { background: rgba(245,158,11,.15); color: var(--accent); }
-.type-vigil { background: rgba(16,185,129,.15); color: var(--accent2); }
-.type-rally { background: rgba(236,72,153,.15); color: #f472b6; }
-.type-sit-in { background: rgba(139,92,246,.15); color: #a78bfa; }
-.type-strike { background: rgba(239,68,68,.15); color: #f87171; }
-.type-assembly { background: var(--surface2); color: var(--text2); }
-#api-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
-.api-dot { width: 8px; height: 8px; border-radius: 50%; }
-.api-dot.online { background: var(--accent2); }
-.api-dot.offline { background: var(--red); }
-
-/* ── Responsive ── */
-@media (max-width: 640px) {
-  nav { padding: 0 16px; gap: 12px; }
-  nav .gh-link span { display: none; }
-  section { padding: 60px 16px; }
-  .card-grid, .repo-grid { grid-template-columns: 1fr; }
-  .arch-flow { flex-direction: column; }
-  .arch-arrow { transform: rotate(90deg); }
-  .stats-bar { grid-template-columns: repeat(2,1fr); }
+@media (prefers-reduced-motion: reduce) {
+  .hero-eyebrow, .hero-title, .hero-sub, .hero-actions, .hero-stats { animation: none; }
+  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
 </style>
 </head>
 <body>
 
-<!-- ── Nav ──────────────────────────────────────────────────── -->
-<nav>
-  <div class="logo">Uncolon<span>ised</span></div>
-  <a href="#vision">Vision</a>
-  <a href="#architecture">Architecture</a>
-  <a href="#repo">Repository</a>
-  <a href="#roadmap">Roadmap</a>
-  <a href="#api">API</a>
-  <a href="#contribute">Contribute</a>
-  <div class="spacer"></div>
-  <div id="api-status"><span class="api-dot offline" id="apiDot"></span><span id="apiStatusText">checking...</span></div>
-  <a class="gh-link" href="https://github.com/Javid912/Uncolonised" target="_blank">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-    <span>GitHub</span>
-  </a>
+<div id="progress-bar"></div>
+<div id="overlay"></div>
+
+<nav id="sidebar" role="navigation" aria-label="Main navigation">
+  <div class="sidebar-logo">
+    <div class="logo-mark">U</div>
+    <div>
+      <div class="logo-text">Uncolonised</div>
+      <div class="logo-ver">v2.0.0</div>
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Dashboard</div>
+    <button class="nav-link active" data-page="home"><span class="nav-dot"></span>Home</button>
+    <button class="nav-link" data-page="workflow"><span class="nav-dot"></span>Workflow</button>
+    <button class="nav-link" data-page="architecture"><span class="nav-dot"></span>Architecture</button>
+    <button class="nav-link" data-page="agents"><span class="nav-dot"></span>Agents</button>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Reference</div>
+    <button class="nav-link" data-page="api"><span class="nav-dot"></span>API Reference</button>
+    <button class="nav-link" data-page="database"><span class="nav-dot"></span>Database</button>
+    <button class="nav-link" data-page="repository"><span class="nav-dot"></span>Repository</button>
+    <button class="nav-link" data-page="roadmap"><span class="nav-dot"></span>Roadmap</button>
+  </div>
+  <div class="sidebar-footer">
+    <a class="sidebar-link" href="https://github.com/Javid912/Uncolonised" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      GitHub
+    </a>
+    <div class="sidebar-divider"></div>
+    <div style="font-size:11px;color:var(--muted);padding:4px 0;line-height:1.5;">
+      <span class="status-dot" id="nav-status-dot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--muted);margin-right:6px;vertical-align:middle;"></span>
+      <span id="nav-status-text" style="vertical-align:middle;">checking...</span>
+    </div>
+  </div>
 </nav>
 
-<!-- ── Hero ──────────────────────────────────────────────────── -->
-<section id="hero">
-<div class="inner">
-  <div class="badge"><span class="dot"></span> v1.0.0 — Open Source</div>
-  <h1>Uncolon<span class="hl">ised</span></h1>
-  <p>A collectively written digital magazine and event platform for anti-colonial, anti-imperialist movements in Berlin. Aggregates protests, publishes articles, and indexes resistance — powered by AI.</p>
-  <div class="actions">
-    <a class="btn btn-primary" href="#architecture">Explore the project</a>
-    <a class="btn btn-secondary" href="#contribute">Contribute</a>
-    <a class="btn btn-outline" href="https://github.com/Javid912/Uncolonised" target="_blank">View on GitHub</a>
-  </div>
-  <div class="stats-bar">
-    <div class="stat-item"><div class="num accent">21</div><div class="label">Tags</div></div>
-    <div class="stat-item"><div class="num accent2">12</div><div class="label">API Endpoints</div></div>
-    <div class="stat-item"><div class="num accent3">4</div><div class="label">Scrapers</div></div>
-    <div class="stat-item"><div class="num">Python</div><div class="label">Backend</div></div>
-    <div class="stat-item"><div class="num">Postgres</div><div class="label">Database</div></div>
-    <div class="stat-item"><div class="num">dbt</div><div class="label">Transform</div></div>
+<div id="nav-overlay"></div>
+<button id="nav-toggle" aria-label="Toggle navigation">☰</button>
+
+<main id="main">
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PAGE 1: HOME
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="page-home" class="page active">
+  <section class="hero-section">
+    <div class="hero-eyebrow">Anti-Colonial Digital Magazine &middot; Berlin</div>
+    <h1 class="hero-title">Uncolon<em>ised</em></h1>
+    <p class="hero-sub">A curated digital magazine and event platform for anti-colonial, anti-imperialist movements in Berlin. Multi-source event aggregation, an agentic AI editorial pipeline, bilingual full-text search — all secured behind API key auth. <strong style="color:var(--text)">No public write endpoints.</strong></p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" data-page="workflow">Explore Workflow &rarr;</button>
+      <button class="btn btn-ghost" data-page="api">API Reference</button>
+      <a class="btn btn-ghost" href="https://github.com/Javid912/Uncolonised" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:7px;text-decoration:none">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-item"><span class="stat-num" id="stat-endpoints">0</span><span class="stat-label">API Endpoints</span></div>
+      <div class="stat-item"><span class="stat-num" id="stat-agents">0</span><span class="stat-label">Swarm Agents</span></div>
+      <div class="stat-item"><span class="stat-num" id="stat-scrapers">0</span><span class="stat-label">Active Scrapers</span></div>
+      <div class="stat-item"><span class="stat-num" id="stat-tags">0</span><span class="stat-label">Search Translations</span></div>
+      <div class="stat-item"><span class="stat-num" id="stat-tables">0</span><span class="stat-label">DB Tables</span></div>
+      <div class="stat-item"><span class="stat-num" id="stat-models">0</span><span class="stat-label">dbt Models</span></div>
+    </div>
+  </section>
+  <div class="page-content" style="padding-top:0">
+    <div class="section-title">Platform Overview</div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">📡</div>
+        <div class="card-title">Multi-Source Aggregation</div>
+        <div class="card-desc">Scrapers pull from the Berlin Police API and beyond into a unified database. The <code>BaseScraper</code> interface makes adding a new source a single Python class. Registration in <code>run_all.py</code> enables the scraper.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📰</div>
+        <div class="card-title">Curated Editorial Pipeline</div>
+        <div class="card-desc">Approved contributors submit articles via Telegram bot. AI content-reviewer agent auto-tags and summarizes. You (the editor) approve or reject via admin API. No open forms, no spam.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔍</div>
+        <div class="card-title">Bilingual Full-Text Search</div>
+        <div class="card-desc">PostgreSQL FTS with custom <code>german_unaccent</code> and <code>english_unaccent</code> configurations. <code>search_translations</code> table maps English terms to German — "climate housing" finds "Klima Wohnen" events. Results ranked by <code>ts_rank</code>.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🤖</div>
+        <div class="card-title">AI Director (Ollama / OpenAI)</div>
+        <div class="card-desc">LLM agent for auto-tagging content and generating summaries. Configurable via <code>AI_PROVIDER</code> env var. Supports Ollama (default: <code>gemma3:12b</code>) or OpenAI-compatible APIs. Admin-only endpoints.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🗄️</div>
+        <div class="card-title">dbt Medallion Pipeline</div>
+        <div class="card-desc">Bronze &rarr; Silver &rarr; Gold medallion architecture. 8+ dbt models stage, intermediate, and materialize data into API-ready marts with GIN-indexed <code>search_vector</code> columns for fast full-text queries.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🛡️</div>
+        <div class="card-title">Security-First Design</div>
+        <div class="card-desc"><strong>No public write endpoints.</strong> All POST/PUT/DELETE require <code>Authorization: Bearer &lt;ADMIN_API_KEY&gt;</code>. Telegram bot uses <code>ALLOWED_USER_IDS</code> whitelist. Full <code>review_log</code> audit trail for every agent action.</div>
+      </div>
+    </div>
+
+    <div class="section-title">Tech Stack</div>
+    <div class="card-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">
+      <div class="card" style="text-align:center;padding:20px"><div class="card-title" style="font-size:13px">Python 3.12</div><div class="card-desc" style="font-size:11px">API &amp; scrapers</div></div>
+      <div class="card" style="text-align:center;padding:20px"><div class="card-title" style="font-size:13px">FastAPI</div><div class="card-desc" style="font-size:11px">REST framework</div></div>
+      <div class="card" style="text-align:center;padding:20px"><div class="card-title" style="font-size:13px">PostgreSQL 16</div><div class="card-desc" style="font-size:11px">Database + FTS</div></div>
+      <div class="card" style="text-align:center;padding:20px"><div class="card-title" style="font-size:13px">asyncpg</div><div class="card-desc" style="font-size:11px">Async DB driver</div></div>
+      <div class="card" style="text-align:center;padding:20px"><div class="card-title" style="font-size:13px">dbt</div><div class="card-desc" style="font-size:11px">Data transformation</div></div>
+      <div class="card" style="text-align:center;padding:20px"><div class="card-title" style="font-size:13px">Ollama</div><div class="card-desc" style="font-size:11px">Local AI (LLM)</div></div>
+      <div class="card" style="text-align:center;padding:20px"><div class="card-title" style="font-size:13px">Docker Compose</div><div class="card-desc" style="font-size:11px">Containerization</div></div>
+      <div class="card" style="text-align:center;padding:20px"><div class="card-title" style="font-size:13px">python-telegram-bot</div><div class="card-desc" style="font-size:11px">Bot framework</div></div>
+      <div class="card" style="text-align:center;padding:20px"><div class="card-title" style="font-size:13px">Monomind</div><div class="card-desc" style="font-size:11px">Agent orchestration</div></div>
+      <div class="card" style="text-align:center;padding:20px"><div class="card-title" style="font-size:13px">Pydantic v2</div><div class="card-desc" style="font-size:11px">Data validation</div></div>
+    </div>
   </div>
 </div>
-</section>
 
-<!-- ── Vision ────────────────────────────────────────────────── -->
-<section id="vision">
-  <div class="section-label">Why this exists</div>
-  <h2>Vision &amp; <span class="hl">Purpose</span></h2>
-  <p class="sub">Berlin is a city of resistance. Protests, vigils, marches, and assemblies happen every day — but they're scattered across police bulletins, Instagram posts, and grassroots calendars. Uncolonised brings them together.</p>
-  <div class="card-grid">
-    <div class="card">
-      <div class="icon">📡</div>
-      <h3>Multi-Source Aggregation</h3>
-      <p>Scrapers pull from the Berlin Police API and other sources into a unified database. Adding a new source is a single Python class.</p>
-      <a class="link" href="https://github.com/Javid912/Uncolonised/tree/main/scraper/sources" target="_blank">View scrapers &rarr;</a>
+<!-- ═══════════════════════════════════════════════════════════════
+     PAGE 2: WORKFLOW
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="page-workflow" class="page">
+  <div class="page-content">
+    <div class="page-header">
+      <span class="page-tag">Pipeline</span>
+      <h1 class="page-title">Agentic Content Pipeline</h1>
+      <p class="page-desc">An agentic-driven journal with a <span class="human-badge">human-in-the-loop</span> at every decision point. Approved contributors submit via Telegram, AI agents review, and you make the final call before anything goes live.</p>
     </div>
-    <div class="card">
-      <div class="icon">📝</div>
-      <h3>Collective Blog</h3>
-      <p>A shared digital magazine where anyone can publish articles. No auth, no gatekeeping — just markdown and a title.</p>
-      <a class="link" href="https://github.com/Javid912/Uncolonised/blob/main/api/main.py#L207" target="_blank">Create a post &rarr;</a>
+
+    <div class="section-title">The Full Pipeline</div>
+    <div class="phase-flow">
+      <div class="phase-step">
+        <div class="phase-connector"><div class="phase-dot"></div><div class="phase-line"></div></div>
+        <div class="phase-body">
+          <div class="phase-num">Step 1</div>
+          <div class="phase-name">Contributor Sends Article via Telegram</div>
+          <div class="phase-desc">An approved contributor (whitelisted via <code>ALLOWED_USER_IDS</code>) sends a Markdown message to the Telegram bot. First line = title, rest = body. The bot stores it in the <code>submissions</code> table with <code>status = 'pending'</code>.</div>
+        </div>
+      </div>
+      <div class="phase-step">
+        <div class="phase-connector"><div class="phase-dot" style="background:var(--violet);box-shadow:0 0 0 3px oklch(65% 0.16 295 / 0.2)"></div><div class="phase-line"></div></div>
+        <div class="phase-body">
+          <div class="phase-num">Step 2</div>
+          <div class="phase-name">Content-Reviewer AI Agent Review</div>
+          <div class="phase-desc">You trigger <code>POST /admin/submissions/{id}/agent-review</code>. The content-reviewer agent (via Ollama/OpenAI) reads the submission and returns suggested tags and a one-sentence summary. Status changes to <code>agent_review</code>. The review is logged in <code>review_log</code>.</div>
+        </div>
+      </div>
+      <div class="phase-step">
+        <div class="phase-connector"><div class="phase-dot" style="background:var(--amber);box-shadow:0 0 0 3px oklch(70% 0.18 60 / 0.2)"></div><div class="phase-line"></div></div>
+        <div class="phase-body">
+          <div class="phase-num">Step 3</div>
+          <div class="phase-name">Editor Approves or Rejects</div>
+          <div class="phase-desc">You review the agent's suggestions via the admin API. <code>POST /admin/submissions/{id}/approve</code> creates a <code>raw_posts</code> row with <code>status = 'draft'</code>. <code>POST /admin/submissions/{id}/reject</code> sets status to <code>rejected</code>. You can also call this manually with optional editor notes.</div>
+        </div>
+      </div>
+      <div class="phase-step">
+        <div class="phase-connector"><div class="phase-dot" style="background:var(--cyan);box-shadow:0 0 0 3px oklch(78% 0.14 210 / 0.2)"></div><div class="phase-line"></div></div>
+        <div class="phase-body">
+          <div class="phase-num">Step 4</div>
+          <div class="phase-name">Draft Post in raw_posts</div>
+          <div class="phase-desc">On approval, a new row is inserted into <code>raw_posts</code> with <code>status = 'draft'</code>. The slug is auto-generated from the title with collision handling. The submission is linked via <code>submission_id</code>.</div>
+        </div>
+      </div>
+      <div class="phase-step">
+        <div class="phase-connector"><div class="phase-dot" style="background:var(--accent);box-shadow:0 0 0 3px oklch(72% 0.22 168 / 0.2)"></div><div class="phase-line"></div></div>
+        <div class="phase-body">
+          <div class="phase-num">Step 5</div>
+          <div class="phase-name">Editor Publishes</div>
+          <div class="phase-desc"><code>POST /admin/posts/{id}/publish</code> sets <code>status = 'published'</code> and records <code>published_at</code>. The post appears in public <code>/posts</code> and <code>/search</code> endpoints. <code>POST /admin/posts/{id}/unpublish</code> reverts to draft.</div>
+        </div>
+      </div>
+      <div class="phase-step">
+        <div class="phase-connector"><div class="phase-dot" style="background:var(--accent);box-shadow:0 0 0 3px oklch(72% 0.22 168 / 0.2)"></div></div>
+        <div class="phase-body">
+          <div class="phase-num">Step 6</div>
+          <div class="phase-name">Live on Site + Searchable</div>
+          <div class="phase-desc">The dbt pipeline materializes published posts into <code>mart_posts_api</code> with GIN-indexed search vectors. Public <code>/posts</code>, <code>/posts/{id}</code>, and unified <code>/search</code> endpoints serve the content. Bilingual FTS matches English and German queries.</div>
+        </div>
+      </div>
     </div>
-    <div class="card">
-      <div class="icon">🔍</div>
-      <h3>Bilingual Search</h3>
-      <p>Full-text search in German and English with automatic translation expansion. "Climate housing" finds "Klima Wohnen" events.</p>
-      <a class="link" href="https://github.com/Javid912/Uncolonised/blob/main/api/main.py#L85" target="_blank">Search logic &rarr;</a>
+
+    <div class="section-title">Agentic Journal Model</div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">👤</div>
+        <div class="card-title">Human-in-the-Loop</div>
+        <div class="card-desc">Every submission passes through a human editor before going live. AI agents assist (tagging, summarizing) but never auto-publish. The <span class="human-badge">editor</span> is the final gatekeeper.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔐</div>
+        <div class="card-title">Curated Submission Only</div>
+        <div class="card-desc">No open registration or public forms. Contributors are personally invited and whitelisted via Telegram user IDs. The Telegram bot rejects unauthenticated submissions with "Unauthorized."</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📋</div>
+        <div class="card-title">Full Audit Trail</div>
+        <div class="card-desc">Every agent action is recorded in <code>review_log</code> — who reviewed, what action (review/edit/approve/reject/request_revision), and notes. The <code>admin_notes</code> field tracks editorial decisions.</div>
+      </div>
     </div>
-    <div class="card">
-      <div class="icon">🤖</div>
-      <h3>AI Director</h3>
-      <p>An AI agent (Ollama or OpenAI) that auto-tags content, summarizes events, and curates the platform — politically independent.</p>
-      <a class="link" href="https://github.com/Javid912/Uncolonised/blob/main/api/main.py#L149" target="_blank">AI endpoints &rarr;</a>
+
+    <div class="section-title">Status Lifecycle</div>
+    <div class="table-wrap">
+      <table class="doc-table">
+        <thead><tr><th>Entity</th><th>Statuses</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">submissions</td><td><span class="tag tag-amber">pending</span> &rarr; <span class="tag tag-violet">agent_review</span> &rarr; <span class="tag tag-accent">approved</span> / <span class="tag tag-red">rejected</span> / <span class="tag tag-amber">needs_revision</span></td><td>Submission lifecycle from receipt through agent review to editorial decision.</td></tr>
+          <tr><td class="mono">raw_posts</td><td><span class="tag tag-muted">draft</span> &rarr; <span class="tag tag-amber">in_review</span> &rarr; <span class="tag tag-accent">approved</span> &rarr; <span class="tag tag-cyan">published</span> / <span class="tag tag-red">rejected</span></td><td>Post lifecycle after approval. Must be published to appear in public API.</td></tr>
+        </tbody>
+      </table>
     </div>
-    <div class="card">
-      <div class="icon">🧩</div>
-      <h3>dbt Pipeline</h3>
-      <p>Bronze &rarr; Silver &rarr; Gold medallion architecture. Raw scraped data is cleaned, enriched with tags and districts, then materialized for fast API queries.</p>
-      <a class="link" href="https://github.com/Javid912/Uncolonised/tree/main/dbt_project/models" target="_blank">dbt models &rarr;</a>
+
+    <div class="section-title">Quick Admin Commands</div>
+    <div class="code-block">
+<span class="comment"># Trigger AI agent review on a submission</span>
+curl -X POST http://localhost:8000/admin/submissions/1/agent-review \
+  -H <span class="string">"Authorization: Bearer $ADMIN_API_KEY"</span>
+
+<span class="comment"># Approve and create draft post</span>
+curl -X POST http://localhost:8000/admin/submissions/1/approve \
+  -H <span class="string">"Authorization: Bearer $ADMIN_API_KEY"</span> \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -d <span class="string">'{"editor_notes": "Great piece, ready for publishing"}'</span>
+
+<span class="comment"># Publish the draft post</span>
+curl -X POST http://localhost:8000/admin/posts/1/publish \
+  -H <span class="string">"Authorization: Bearer $ADMIN_API_KEY"</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PAGE 3: ARCHITECTURE
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="page-architecture" class="page">
+  <div class="page-content">
+    <div class="page-header">
+      <span class="page-tag">System Design</span>
+      <h1 class="page-title">Data Architecture &amp; Security Model</h1>
+      <p class="page-desc">A medallion pipeline (bronze &rarr; silver &rarr; gold) with dbt transformations. All writes require API key authentication. No public POST/PUT/DELETE endpoints exist.</p>
     </div>
-    <div class="card">
-      <div class="icon">🐳</div>
-      <h3>Docker Ready</h3>
-      <p>One command to spin up PostgreSQL, FastAPI, scrapers, and the test UI. Works on any machine.</p>
-      <a class="link" href="https://github.com/Javid912/Uncolonised/blob/main/docker-compose.yml" target="_blank">docker-compose.yml &rarr;</a>
+
+    <div class="section-title">Data Flow</div>
+    <div class="tier-stack">
+      <div class="tier-row tier-l0">
+        <div class="tier-label">Sources</div>
+        <div class="tier-content"><strong>Data ingestion layer.</strong> Two data sources: Berlin Police API scraper (<code>scraper/sources/berlin_police.py</code>) pulls assembly data into <code>raw_assemblies</code>. Telegram bot (<code>bot/bot.py</code>) receives curated article submissions into <code>submissions</code>.</div>
+      </div>
+      <div class="tier-row tier-l1">
+        <div class="tier-label">Bronze</div>
+        <div class="tier-content"><strong>Raw landing zone.</strong> <code>raw_assemblies</code> stores raw event scrapes with original field names (datum, von, bis, thema, plz, strasse_nr, aufzugsstrecke). <code>raw_posts</code> stores blog posts with status tracking. No transformations applied.</div>
+      </div>
+      <div class="tier-row tier-l2">
+        <div class="tier-label">Silver</div>
+        <div class="tier-content"><strong>Cleaned &amp; enriched.</strong> dbt staging models normalize field names, parse dates, clean postcodes. Intermediate models join with district lookups, apply tag taxonomies, and generate search vectors with <code>german_unaccent</code>.</div>
+      </div>
+      <div class="tier-row tier-l3">
+        <div class="tier-label">Gold</div>
+        <div class="tier-content"><strong>API-ready marts.</strong> <code>mart_events_api</code> and <code>mart_posts_api</code> materialize final views for FastAPI queries. GIN-indexed <code>search_vector</code> columns enable <code>ts_rank</code>-ranked full-text search across both languages.</div>
+      </div>
+    </div>
+
+    <div class="section-title">Security Model</div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">🔑</div>
+        <div class="card-title">API Key Authentication</div>
+        <div class="card-desc">All admin endpoints use <code>HTTPBearer</code> or <code>X-API-Key</code> header. <code>secrets.compare_digest</code> prevents timing attacks. Key set via <code>ADMIN_API_KEY</code> env var. Stored hashed in <code>admin_api_keys</code> table.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🚫</div>
+        <div class="card-title">No Open Write Endpoints</div>
+        <div class="card-desc">All public endpoints are read-only GET requests. No <code>POST /posts</code>, no <code>POST /submit</code>. The only write path is <code>submissions</code> via Telegram bot (whitelisted users) or admin API (key required).</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📋</div>
+        <div class="card-title">Telegram Whitelist</div>
+        <div class="card-desc"><code>ALLOWED_USER_IDS</code> env var defines comma-separated Telegram user IDs. Unauthorized users receive "You are not authorized to use this bot." No public bot commands beyond <code>/start</code>.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📝</div>
+        <div class="card-title">Audit Trail</div>
+        <div class="card-desc">Every moderation action is logged in <code>review_log</code> with agent name, action type (review/edit/approve/reject/request_revision), and notes. Submissions track <code>reviewed_by</code> and <code>reviewed_at</code>.</div>
+      </div>
+    </div>
+
+    <div class="section-title">System Architecture</div>
+    <div class="code-block">
+<span class="comment"># Data Flow Diagram</span>
+<span class="keyword">Berlin Police API</span> ──&gt; <span class="keyword">raw_assemblies</span> (bronze) ──&gt; dbt stg ──&gt; dbt int ──&gt; <span class="keyword">mart_events_api</span> (gold)
+                                                                                          │
+<span class="keyword">Telegram Bot</span> ──&gt; <span class="keyword">submissions</span> ──&gt; agent review ──&gt; you approve ──&gt; <span class="keyword">raw_posts</span> (bronze) ──&gt; dbt ──&gt; <span class="keyword">mart_posts_api</span> (gold)
+                                                                                          │
+                                                                                          ▼
+                                                                                    <span class="keyword">FastAPI</span> ──&gt; Public GET /events, /posts, /search
+                                                                                    <span class="keyword">FastAPI</span> ──&gt; Admin POST (key required)</div>
+
+    <div class="section-title">Infrastructure</div>
+    <div class="table-wrap">
+      <table class="doc-table">
+        <thead><tr><th>Service</th><th>Role</th><th>Port</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">FastAPI</td><td>REST API server (public + admin)</td><td>8000</td></tr>
+          <tr><td class="mono">PostgreSQL</td><td>Database with full-text search</td><td>5432</td></tr>
+          <tr><td class="mono">Telegram Bot</td><td>Submission ingestion service</td><td>-</td></tr>
+          <tr><td class="mono">Scraper</td><td>Berlin Police event scraper (cron)</td><td>-</td></tr>
+          <tr><td class="mono">dbt</td><td>Data transformation pipeline</td><td>-</td></tr>
+          <tr><td class="mono">Ollama</td><td>Local AI inference (optional)</td><td>11434</td></tr>
+          <tr><td class="mono">nginx</td><td>Reverse proxy (optional)</td><td>80/443</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
-</section>
+</div>
 
-<!-- ── Architecture ──────────────────────────────────────────── -->
-<section id="architecture">
-  <div class="section-label">How it works</div>
-  <h2>Data <span class="hl">Architecture</span></h2>
-  <p class="sub">A medallion pipeline: raw scraped data flows through dbt transformations into indexed API tables. PostgreSQL handles full-text search with custom German/English stemmers.</p>
-  <div class="arch-flow">
-    <div class="arch-node source">Police API</div>
-    <div class="arch-arrow">&rarr;</div>
-    <div class="arch-node source">RSS Feeds</div>
-    <div class="arch-arrow">&rarr;</div>
-    <div class="arch-node source">Submissions</div>
-    <div class="arch-arrow">&rarr;</div>
-    <div class="arch-node bronze">raw_*</div>
-    <div class="arch-arrow">&rarr;</div>
-    <div class="arch-node silver">dbt (stg &rarr; int)</div>
-    <div class="arch-arrow">&rarr;</div>
-    <div class="arch-node gold">mart_*_api</div>
-    <div class="arch-arrow">&rarr;</div>
-    <div class="arch-node source" style="background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.3);color:var(--accent)">FastAPI</div>
-  </div>
-  <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
-    <span style="font-size:11px;padding:4px 12px;border-radius:4px;background:rgba(59,130,246,.15);color:#60a5fa">42 scrapers possible</span>
-    <span style="font-size:11px;padding:4px 12px;border-radius:4px;background:rgba(245,158,11,.15);color:var(--accent)">Bronze: raw JSON dump</span>
-    <span style="font-size:11px;padding:4px 12px;border-radius:4px;background:rgba(148,163,184,.15);color:#cbd5e1">Silver: cleaned + enriched</span>
-    <span style="font-size:11px;padding:4px 12px;border-radius:4px;background:rgba(16,185,129,.15);color:var(--accent2)">Gold: indexed, API-ready</span>
-  </div>
-</section>
+<!-- ═══════════════════════════════════════════════════════════════
+     PAGE 4: AGENTS
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="page-agents" class="page">
+  <div class="page-content">
+    <div class="page-header">
+      <span class="page-tag">Team</span>
+      <h1 class="page-title">Swarm Agents</h1>
+      <p class="page-desc">Four Monomind-powered AI agents coordinating the project, researching topics, reviewing content, and implementing features. All memory stored under the <code>uncolonised</code> namespace.</p>
+    </div>
 
-<!-- ── Repository Map ────────────────────────────────────────── -->
-<section id="repo">
-  <div class="section-label">Codebase</div>
-  <h2>Repository <span class="hl">Map</span></h2>
-  <p class="sub">Key files and directories — click to open on GitHub.</p>
-  <div class="repo-grid">
-    <a class="repo-card" href="https://github.com/Javid912/Uncolonised/tree/main/api" target="_blank">
-      <div class="path">api/</div>
-      <h4>FastAPI Application</h4>
-      <p>REST API with 12 endpoints: events, posts, search, submissions, AI director.</p>
-      <div class="files"><span>main.py</span><span>requirements.txt</span><span>Dockerfile</span></div>
-    </a>
-    <a class="repo-card" href="https://github.com/Javid912/Uncolonised/tree/main/scraper" target="_blank">
-      <div class="path">scraper/</div>
-      <h4>Event Scrapers</h4>
-      <p>Multi-source scraper framework with BaseScraper interface. Add sources by subclassing.</p>
-      <div class="files"><span>run_all.py</span><span>sources/</span><span>berlin_police.py</span></div>
-    </a>
-    <a class="repo-card" href="https://github.com/Javid912/Uncolonised/tree/main/dbt_project" target="_blank">
-      <div class="path">dbt_project/</div>
-      <h4>dbt Transformations</h4>
-      <p>8 models across staging, intermediate, and marts layers. GIN-indexed search vectors.</p>
-      <div class="files"><span>dbt_project.yml</span><span>models/</span><span>seeds/tag_rules.csv</span></div>
-    </a>
-    <a class="repo-card" href="https://github.com/Javid912/Uncolonised/tree/main/scripts" target="_blank">
-      <div class="path">scripts/</div>
-      <h4>Database &amp; Pipeline</h4>
-      <p>Schema bootstrap, cron scripts, Docker entrypoint. One script runs everything.</p>
-      <div class="files"><span>init_db.sql</span><span>pipeline_run.sh</span><span>daily_run.sh</span></div>
-    </a>
-    <a class="repo-card" href="https://github.com/Javid912/Uncolonised/blob/main/docker-compose.yml" target="_blank">
-      <div class="path">docker-compose.yml</div>
-      <h4>Infrastructure</h4>
-      <p>4 services: PostgreSQL 16, FastAPI, pipeline (scrapers + dbt), nginx UI.</p>
-      <div class="files"><span>db</span><span>api</span><span>pipeline</span><span>ui</span></div>
-    </a>
-    <a class="repo-card" href="https://github.com/Javid912/Uncolonised/blob/main/CLAUDE.md" target="_blank">
-      <div class="path">CLAUDE.md</div>
-      <h4>AI Agent Configuration</h4>
-      <p>Monomind swarm setup: project-manager, editor, content-reviewer, builder agents.</p>
-      <div class="files"><span>project-vision</span><span>team-roles</span><span>data-model</span></div>
-    </a>
-  </div>
-</section>
+    <div class="section-title">Agent Roster</div>
+    <div class="card-grid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">
+      <div class="card" style="border-left:3px solid var(--accent)">
+        <div class="card-icon">📋</div>
+        <div class="card-title">project-manager</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px"><span class="tag tag-accent">coordinator</span><span class="tag tag-muted">leader</span></div>
+        <div class="card-desc">Roadmap planning, sprint orchestration, task delegation. Ensures the project stays on track and agents are aligned with the vision. Coordinates the swarm.</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--amber)">
+        <div class="card-icon">🔍</div>
+        <div class="card-title">editor</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px"><span class="tag tag-amber">researcher</span></div>
+        <div class="card-desc">Editorial strategy, topic research, content calendar planning. Identifies relevant anti-colonial events and movements in Berlin for coverage.</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--violet)">
+        <div class="card-icon">✅</div>
+        <div class="card-title">content-reviewer</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px"><span class="tag tag-violet">reviewer</span></div>
+        <div class="card-desc">Quality checks, moderation, anti-colonial lens verification, tone analysis, submission review. Auto-tags and summarizes submissions via the AI Director.</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--cyan)">
+        <div class="card-icon">⚙️</div>
+        <div class="card-title">builder</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px"><span class="tag tag-cyan">coder</span></div>
+        <div class="card-desc">Implements scrapers, dbt models, API endpoints, Docker configuration. Writes code based on specifications from the project-manager and editor agents.</div>
+      </div>
+    </div>
 
-<!-- ── Roadmap ───────────────────────────────────────────────── -->
-<section id="roadmap">
-  <div class="section-label">Progress</div>
-  <h2>Roadmap &amp; <span class="hl">Progress</span></h2>
-  <p class="sub">What's built, what's in progress, and what's coming next.</p>
-  <div class="roadmap">
-    <div class="road-item done">
-      <span class="tag">Done</span>
-      <h4>Core Data Pipeline</h4>
-      <p>Berlin Police scraper, dbt medallion pipeline (stg &rarr; int &rarr; mart), PostgreSQL full-text search with bilingual support.</p>
+    <div class="section-title">Monomind Integration</div>
+    <div class="table-wrap">
+      <table class="doc-table">
+        <thead><tr><th>Resource</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">Memory Namespace</td><td><span class="tag tag-accent">uncolonised</span></td></tr>
+          <tr><td class="mono">Config File</td><td><span class="tag tag-cyan">CLAUDE.md</span></td></tr>
+          <tr><td class="mono">Agent Types</td><td>coordinator, researcher, reviewer, coder</td></tr>
+          <tr><td class="mono">Swarm Topology</td><td>Hierarchical (project-manager as lead)</td></tr>
+          <tr><td class="mono">Orchestration</td><td>Monomind CLI &rarr; <code>monomind agent spawn</code> &rarr; <code>monomind swarm status</code></td></tr>
+        </tbody>
+      </table>
     </div>
-    <div class="road-item done">
-      <span class="tag">Done</span>
-      <h4>REST API</h4>
-      <p>FastAPI with 12 endpoints: events CRUD, posts, submissions, unified search, tags, districts, AI director.</p>
+
+    <div class="section-title">Key Memory Entries</div>
+    <div class="table-wrap">
+      <table class="doc-table">
+        <thead><tr><th>Key</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">project-vision</td><td>Overall vision, purpose, and tech stack decisions</td></tr>
+          <tr><td class="mono">team-roles</td><td>Agent responsibilities and interaction model</td></tr>
+          <tr><td class="mono">data-model</td><td>Bronze/silver/gold medallion schema documentation</td></tr>
+          <tr><td class="mono">api-endpoints</td><td>All available REST endpoints (public vs admin)</td></tr>
+          <tr><td class="mono">security-policy</td><td>Auth requirements, no open endpoints rule</td></tr>
+        </tbody>
+      </table>
     </div>
-    <div class="road-item done">
-      <span class="tag">Done</span>
-      <h4>Blog Platform</h4>
-      <p>Collective blogging with markdown posts, tags, author attribution. Open publishing, no auth required.</p>
+
+    <div class="section-title">Agent Commands</div>
+    <div class="code-block">
+<span class="comment"># List all agents in the swarm</span>
+<span class="cmd">monomind agent list</span>
+
+<span class="comment"># Spawn a new agent</span>
+<span class="cmd">monomind agent spawn -t &lt;type&gt; --name &lt;name&gt;</span>
+
+<span class="comment"># Check swarm status</span>
+<span class="cmd">monomind swarm status</span>
+
+<span class="comment"># Store a decision in memory</span>
+<span class="cmd">monomind memory store --key "key" --value "data" --namespace uncolonised --tags "tag1,tag2"</span>
+
+<span class="comment"># Search memory</span>
+<span class="cmd">monomind memory search --query "search term" --namespace uncolonised</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PAGE 5: API REFERENCE
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="page-api" class="page">
+  <div class="page-content">
+    <div class="page-header">
+      <span class="page-tag">Reference</span>
+      <h1 class="page-title">API Reference</h1>
+      <p class="page-desc">Complete endpoint inventory. <strong>15 endpoints total:</strong> 8 public (read-only, no auth) and 7 admin (all require <code>Authorization: Bearer &lt;key&gt;</code>). No public write endpoints exist.</p>
     </div>
-    <div class="road-item current">
-      <span class="tag">In Progress</span>
-      <h4>Contributor Dashboard</h4>
-      <p>Project landing page with architecture visualization, repo map, live API explorer, and contribution guide.</p>
+
+    <div class="section-title">Public Endpoints <span class="tag tag-accent" style="margin-left:8px;vertical-align:middle">No auth required</span></div>
+    <div class="table-wrap">
+      <table class="doc-table">
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th><th>Query Params</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="method method-get">GET</span></td>
+            <td class="mono">/health</td>
+            <td>API health check</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><span class="method method-get">GET</span></td>
+            <td class="mono">/events</td>
+            <td>List events (upcoming by default)</td>
+            <td class="mono">date_from, date_to, district, postcode, event_type, tag, has_route, q, limit, offset, upcoming</td>
+          </tr>
+          <tr>
+            <td><span class="method method-get">GET</span></td>
+            <td class="mono">/events/{id}</td>
+            <td>Event detail (includes description, route_text)</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><span class="method method-get">GET</span></td>
+            <td class="mono">/posts</td>
+            <td>List published posts</td>
+            <td class="mono">tag, author, q, limit, offset</td>
+          </tr>
+          <tr>
+            <td><span class="method method-get">GET</span></td>
+            <td class="mono">/posts/{id}</td>
+            <td>Published post detail (includes body_md)</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><span class="method method-get">GET</span></td>
+            <td class="mono">/search</td>
+            <td>Unified search across events and posts</td>
+            <td class="mono">q (required), limit, offset</td>
+          </tr>
+          <tr>
+            <td><span class="method method-get">GET</span></td>
+            <td class="mono">/tags</td>
+            <td>List tags with event counts</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><span class="method method-get">GET</span></td>
+            <td class="mono">/districts</td>
+            <td>List districts with event counts</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-    <div class="road-item next">
-      <span class="tag">Next</span>
-      <h4>Additional Scrapers</h4>
-      <p>RSS feeds from grassroots orgs, Instagram event pages, Google Calendar integrations. Plug into the BaseScraper interface.</p>
+
+    <div class="section-title">Admin Endpoints <span class="tag tag-red" style="margin-left:8px;vertical-align:middle">API key required</span></div>
+    <div class="table-wrap">
+      <table class="doc-table">
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method method-get">GET</span></td><td class="mono">/admin/stats</td><td>Dashboard statistics (event/post/submission counts)</td></tr>
+          <tr><td><span class="method method-get">GET</span></td><td class="mono">/admin/submissions</td><td>List submissions (optional <code>status</code> filter)</td></tr>
+          <tr><td><span class="method method-post">POST</span></td><td class="mono">/admin/submissions</td><td>Create a submission (admin override)</td></tr>
+          <tr><td><span class="method method-post">POST</span></td><td class="mono">/admin/submissions/{id}/approve</td><td>Approve submission → creates draft post</td></tr>
+          <tr><td><span class="method method-post">POST</span></td><td class="mono">/admin/submissions/{id}/reject</td><td>Reject submission with optional reason</td></tr>
+          <tr><td><span class="method method-post">POST</span></td><td class="mono">/admin/submissions/{id}/agent-review</td><td>Trigger AI agent review (tags + summary)</td></tr>
+          <tr><td><span class="method method-get">GET</span></td><td class="mono">/admin/posts</td><td>List all posts (all statuses)</td></tr>
+          <tr><td><span class="method method-post">POST</span></td><td class="mono">/admin/posts/{id}/publish</td><td>Publish a draft post</td></tr>
+          <tr><td><span class="method method-post">POST</span></td><td class="mono">/admin/posts/{id}/unpublish</td><td>Unpublish (revert to draft)</td></tr>
+          <tr><td><span class="method method-post">POST</span></td><td class="mono">/admin/ai/suggest-tags</td><td>AI tag suggestion for arbitrary text</td></tr>
+          <tr><td><span class="method method-post">POST</span></td><td class="mono">/admin/ai/summarize</td><td>AI summary generation for arbitrary text</td></tr>
+        </tbody>
+      </table>
     </div>
-    <div class="road-item next">
-      <span class="tag">Next</span>
-      <h4>AI Director Enhancements</h4>
-      <p>Auto-moderation of submissions, content summarization digests, topic trend detection across events.</p>
-    </div>
-    <div class="road-item next">
-      <span class="tag">Next</span>
-      <h4>Frontend Application</h4>
-      <p>A proper SPA or static site for browsing events, reading the blog, searching, and submitting content.</p>
+
+    <div class="section-title">Auth Header Examples</div>
+    <div class="code-block">
+<span class="comment"># Using Bearer token (Authorization header)</span>
+curl http://localhost:8000/admin/stats \
+  -H <span class="string">"Authorization: Bearer your-api-key-here"</span>
+
+<span class="comment"># Using X-API-Key header (alternative)</span>
+curl http://localhost:8000/admin/stats \
+  -H <span class="string">"X-API-Key: your-api-key-here"</span>
+
+<span class="comment"># Python (httpx)</span>
+<span class="keyword">import</span> httpx
+resp = httpx.get(<span class="string">"http://localhost:8000/admin/stats"</span>,
+    headers={<span class="string">"Authorization"</span>: <span class="string">f"Bearer {api_key}"</span>})</div>
+
+    <div class="section-title">Response Models</div>
+    <div class="table-wrap">
+      <table class="doc-table">
+        <thead><tr><th>Model</th><th>Fields</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">EventSummary</td><td>event_id, source_id, event_date, time_start, time_end, postcode, district_name, street_address, title, event_type, has_route, is_recurring, tags</td></tr>
+          <tr><td class="mono">EventDetail</td><td>EventSummary + description, route_text, recurrence_note</td></tr>
+          <tr><td class="mono">PostSummary</td><td>post_id, title, excerpt, author_name, slug, published_at, tags</td></tr>
+          <tr><td class="mono">PostDetail</td><td>PostSummary + body_md, created_at, updated_at</td></tr>
+          <tr><td class="mono">SearchResult</td><td>type (event/post), id, title, excerpt, date, tags, rank</td></tr>
+          <tr><td class="mono">TagSummary</td><td>slug, label_de, label_en, event_count</td></tr>
+          <tr><td class="mono">DashboardStats</td><td>total_events, upcoming_events, total_posts, published_posts, pending_submissions, total_scrapers, api_status</td></tr>
+          <tr><td class="mono">SubmissionOut</td><td>id, created_at, submission_type, title, body_md, description, author_name, contact_name/email, telegram_uid/username, tags, status, agent_notes, admin_notes</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
-</section>
+</div>
 
-<!-- ── API Explorer ──────────────────────────────────────────── -->
-<section id="api">
-  <div class="section-label">Explore</div>
-  <h2>Live API <span class="hl">Explorer</span></h2>
-  <p class="sub">Try the API directly. Filter events, search across languages, browse tags. Requires the API to be running locally.</p>
-
-  <div class="api-bar">
-    <input id="api-query" placeholder="search terms (e.g. climate housing)" value="">
-    <select id="api-type">
-      <option value="">all types</option>
-      <option>march</option><option>vigil</option><option>rally</option>
-      <option>sit-in</option><option>strike</option><option>assembly</option>
-    </select>
-    <select id="api-endpoint">
-      <option value="/events">GET /events</option>
-      <option value="/tags">GET /tags</option>
-      <option value="/districts">GET /districts</option>
-      <option value="/posts">GET /posts</option>
-    </select>
-    <button onclick="exploreAPI()">Run</button>
-  </div>
-
-  <div id="api-output">
-    <pre id="api-raw">Click "Run" to query the API, or start the server with <strong>uvicorn api.main:app --reload</strong>.</pre>
-    <div id="api-table-area"></div>
-  </div>
-</section>
-
-<!-- ── Contribute ───────────────────────────────────────────── -->
-<section id="contribute">
-  <div class="section-label">Join</div>
-  <h2>How to <span class="hl">Contribute</span></h2>
-  <p class="sub">Uncolonised is open to anyone who shares the vision. No experience needed — writers, scraper hackers, designers, and data people are all welcome.</p>
-  <div class="contribute-steps">
-    <div class="step">
-      <div class="num">1</div>
-      <h4>Clone &amp; Run</h4>
-      <p><code>git clone</code>, <code>docker compose up</code>, and you have a running instance. See the README.</p>
+<!-- ═══════════════════════════════════════════════════════════════
+     PAGE 6: DATABASE
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="page-database" class="page">
+  <div class="page-content">
+    <div class="page-header">
+      <span class="page-tag">Schema</span>
+      <h1 class="page-title">Database Schema</h1>
+      <p class="page-desc">PostgreSQL 16 with full-text search. Six core tables + two dbt marts. GIN-indexed search vectors, bilingual unaccent stemmers, and a complete review audit trail.</p>
     </div>
-    <div class="step">
-      <div class="num">2</div>
-      <h4>Write an Article</h4>
-      <p><code>POST /posts</code> with a title, markdown body, and your name. No account needed.</p>
-    </div>
-    <div class="step">
-      <div class="num">3</div>
-      <h4>Add a Scraper</h4>
-      <p>Create a class in <code>scraper/sources/</code>, implement <code>BaseScraper</code>, register it in <code>run_all.py</code>.</p>
-    </div>
-    <div class="step">
-      <div class="num">4</div>
-      <h4>Submit Events</h4>
-      <p>Use <code>POST /submit</code> to tip us about events. The AI director reviews and publishes.</p>
-    </div>
-  </div>
-  <div style="text-align:center;margin-top:40px">
-    <a class="btn btn-primary" href="https://github.com/Javid912/Uncolonised" target="_blank">Star on GitHub</a>
-    <a class="btn btn-secondary" href="https://github.com/Javid912/Uncolonised/issues" target="_blank" style="margin-left:8px">Open an Issue</a>
-  </div>
-</section>
 
-<!-- ── Footer ────────────────────────────────────────────────── -->
-<footer>
-  Uncolonised &mdash; a collectively written project for anti-colonial movements in Berlin.<br>
-  Open source &middot; Built with Python, PostgreSQL, dbt, FastAPI, and <a href="https://monomind.ai" target="_blank">Monomind</a>.
-</footer>
+    <div class="section-title">Bronze Tables</div>
+    <div class="table-wrap">
+      <table class="doc-table">
+        <thead><tr><th>Table</th><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="mono" rowspan="6">raw_assemblies</td><td class="mono">id</td><td><span class="tag tag-muted">BIGSERIAL PK</span></td><td>Auto-increment primary key</td></tr>
+          <tr><td class="mono">scraped_at</td><td><span class="tag tag-muted">TIMESTAMPTZ</span></td><td>Default now()</td></tr>
+          <tr><td class="mono">source_id</td><td><span class="tag tag-muted">INTEGER</span></td><td>Unique per source</td></tr>
+          <tr><td class="mono">datum, von, bis, thema, plz, strasse_nr, aufzugsstrecke</td><td><span class="tag tag-muted">TEXT</span></td><td>Raw German police assembly fields</td></tr>
+          <tr><td colspan="3"><span class="tag tag-amber">INDEX</span> <span class="mono">raw_assemblies_source_id_datum_uq</span> (unique on source_id, datum)</td></tr>
+          <tr><td colspan="3"><span class="tag tag-amber">INDEX</span> <span class="mono">raw_assemblies_scraped_at_idx</span></td></tr>
+
+          <tr><td class="mono" rowspan="7">raw_posts</td><td class="mono">id</td><td><span class="tag tag-muted">BIGSERIAL PK</span></td><td>Auto-increment</td></tr>
+          <tr><td class="mono">title, body_md, excerpt, author_name</td><td><span class="tag tag-muted">TEXT</span></td><td>Core content fields</td></tr>
+          <tr><td class="mono">slug</td><td><span class="tag tag-muted">TEXT UNIQUE</span></td><td>URL-safe identifier</td></tr>
+          <tr><td class="mono">status</td><td><span class="tag tag-muted">TEXT</span></td><td>draft | in_review | approved | published | rejected</td></tr>
+          <tr><td class="mono">tags</td><td><span class="tag tag-muted">TEXT[]</span></td><td>Array of tag strings</td></tr>
+          <tr><td class="mono">submission_id</td><td><span class="tag tag-muted">BIGINT FK</span></td><td>References submissions(id)</td></tr>
+          <tr><td colspan="3"><span class="tag tag-amber">INDEX</span> status, published_at, GIN(tags)</td></tr>
+
+          <tr><td class="mono" rowspan="9">submissions</td><td class="mono">id</td><td><span class="tag tag-muted">BIGSERIAL PK</span></td><td>Auto-increment</td></tr>
+          <tr><td class="mono">submission_type</td><td><span class="tag tag-muted">TEXT</span></td><td>event | post | tip</td></tr>
+          <tr><td class="mono">title, body_md, description</td><td><span class="tag tag-muted">TEXT</span></td><td>Submission content</td></tr>
+          <tr><td class="mono">author_name, contact_name, contact_email</td><td><span class="tag tag-muted">TEXT</span></td><td>Author metadata</td></tr>
+          <tr><td class="mono">telegram_uid, telegram_username</td><td><span class="tag tag-muted">BIGINT / TEXT</span></td><td>Telegram identity</td></tr>
+          <tr><td class="mono">tags</td><td><span class="tag tag-muted">TEXT[]</span></td><td>Array of tag strings</td></tr>
+          <tr><td class="mono">status</td><td><span class="tag tag-muted">TEXT</span></td><td>pending | agent_review | needs_revision | approved | rejected</td></tr>
+          <tr><td class="mono">agent_notes, admin_notes</td><td><span class="tag tag-muted">TEXT</span></td><td>Review trail</td></tr>
+          <tr><td colspan="3"><span class="tag tag-amber">INDEX</span> status, telegram_uid</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title">Supporting Tables</div>
+    <div class="table-wrap">
+      <table class="doc-table">
+        <thead><tr><th>Table</th><th>Columns</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="mono">admin_api_keys</td>
+            <td>id (BIGSERIAL PK), key_hash (TEXT UNIQUE), label, created_at, last_used_at, is_active</td>
+            <td>Stores hashed API keys for admin authentication</td>
+          </tr>
+          <tr>
+            <td class="mono">review_log</td>
+            <td>id (BIGSERIAL PK), submission_id (FK), agent_name, action (review/edit/approve/reject/request_revision), notes, created_at</td>
+            <td>Audit trail for every agent and editorial action</td>
+          </tr>
+          <tr>
+            <td class="mono">search_translations</td>
+            <td>en_term (TEXT PK), de_term (TEXT NOT NULL)</td>
+            <td>Bilingual term mapping for search expansion. 70+ English→German pairs including anti-colonial terminology</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title">Gold Marts (dbt)</div>
+    <div class="table-wrap">
+      <table class="doc-table">
+        <thead><tr><th>View</th><th>Source</th><th>Key Features</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="mono">mart_events_api</td>
+            <td>raw_assemblies → stg → int</td>
+            <td>Cleaned events with <code>search_vector</code> (GIN-indexed), translated fields, district mappings, tag decompositions. Serves <code>/events</code> and <code>/events/{id}</code>.</td>
+          </tr>
+          <tr>
+            <td class="mono">mart_posts_api</td>
+            <td>raw_posts → stg → int</td>
+            <td>Published posts only (filtered by status='published'). <code>search_vector</code> (GIN-indexed). Serves <code>/posts</code>, <code>/posts/{id}</code>, and <code>/search</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title">Full-Text Search Configuration</div>
+    <div class="code-block">
+<span class="comment">-- Custom unaccent stemmers for bilingual search</span>
+<span class="keyword">CREATE TEXT SEARCH CONFIGURATION</span> german_unaccent (<span class="keyword">COPY</span> = german);
+<span class="keyword">ALTER TEXT SEARCH CONFIGURATION</span> german_unaccent
+    <span class="keyword">ALTER MAPPING FOR</span> hword, hword_part, word
+    <span class="keyword">WITH</span> unaccent, german_stem;
+
+<span class="comment">-- English unaccent config</span>
+<span class="keyword">CREATE TEXT SEARCH CONFIGURATION</span> english_unaccent (<span class="keyword">COPY</span> = english);
+<span class="keyword">ALTER TEXT SEARCH CONFIGURATION</span> english_unaccent
+    <span class="keyword">ALTER MAPPING FOR</span> hword, hword_part, word
+    <span class="keyword">WITH</span> unaccent, english_stem;
+
+<span class="comment">-- Search translation examples</span>
+<span class="keyword">INSERT INTO</span> search_translations (en_term, de_term) <span class="keyword">VALUES</span>
+    (<span class="string">'climate'</span>,      <span class="string">'Klima'</span>),
+    (<span class="string">'colonial'</span>,     <span class="string">'Kolonial'</span>),
+    (<span class="string">'resistance'</span>,   <span class="string">'Widerstand'</span>);</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PAGE 7: REPOSITORY
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="page-repository" class="page">
+  <div class="page-content">
+    <div class="page-header">
+      <span class="page-tag">Codebase</span>
+      <h1 class="page-title">Repository Map</h1>
+      <p class="page-desc">Every file in the project, its purpose, and its role in the platform. Click paths to open on GitHub.</p>
+    </div>
+
+    <div class="code-block">
+<span class="comment"># Top-level structure</span>
+.
+├── <span class="cmd">api/</span>              <span class="comment">FastAPI application (856 lines)</span>
+├── <span class="cmd">bot/</span>              <span class="comment">Telegram bot service (139 lines)</span>
+├── <span class="cmd">scraper/</span>          <span class="comment">Multi-source event scrapers</span>
+├── <span class="cmd">dbt_project/</span>      <span class="comment">dbt transformations (8+ models)</span>
+├── <span class="cmd">scripts/</span>          <span class="comment">DB bootstrap, pipeline scripts</span>
+├── <span class="cmd">ui/</span>               <span class="comment">Development dashboard (this file)</span>
+├── <span class="cmd">docker-compose.yml</span> <span class="comment">Infrastructure orchestration</span>
+├── <span class="cmd">CLAUDE.md</span>          <span class="comment">Monomind agent configuration</span>
+└── <span class="cmd">.env</span>               <span class="comment">Environment variables (not committed)</span></div>
+
+    <div class="section-title">api/ — FastAPI Application</div>
+    <div class="table-wrap">
+      <table class="doc-table">
+        <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">main.py</td><td>15 endpoints, asyncpg connection pool, Pydantic v2 models, API key auth with HTTPBearer, AI Director (Ollama/OpenAI), bilingual FTS via search_translations</td></tr>
+          <tr><td class="mono">requirements.txt</td><td>Dependencies: fastapi, uvicorn, asyncpg, pydantic-settings, httpx, python-multipart</td></tr>
+          <tr><td class="mono">Dockerfile</td><td>Python 3.12-slim, installs deps, runs uvicorn on port 8000</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title">scraper/ — Multi-Source Scrapers</div>
+    <div class="table-wrap">
+      <table class="doc-table">
+        <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">__init__.py</td><td>Package init</td></tr>
+          <tr><td class="mono">run_all.py</td><td>Entry point: iterates SOURCES list, runs each scraper, logs results</td></tr>
+          <tr><td class="mono">scraper.py</td><td>Shared utilities, DB insertion logic</td></tr>
+          <tr><td class="mono">sources/base.py</td><td>BaseScraper abstract class — new sources extend this</td></tr>
+          <tr><td class="mono">sources/berlin_police.py</td><td>Berlin Police API scraper — fetches assembly data, stores in raw_assemblies</td></tr>
+          <tr><td class="mono">Dockerfile</td><td>Python 3.12-slim with httpx, asyncpg</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title">bot/ — Telegram Bot</div>
+    <div class="table-wrap">
+      <table class="doc-table">
+        <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">bot.py</td><td>Telegram bot using python-telegram-bot. Whitelist auth via ALLOWED_USER_IDS. /start command, message handler, stores submissions to DB. Markdown parsing, error handling.</td></tr>
+          <tr><td class="mono">requirements.txt</td><td>python-telegram-bot, asyncpg</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title">dbt_project/ — Data Transformations</div>
+    <div class="table-wrap">
+      <table class="doc-table">
+        <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">dbt_project.yml</td><td>dbt project config (profile, model paths, seeds)</td></tr>
+          <tr><td class="mono">profiles.yml</td><td>Connection config for PostgreSQL target</td></tr>
+          <tr><td class="mono">models/sources.yml</td><td>Source declarations for raw_assemblies, raw_posts</td></tr>
+          <tr><td class="mono">models/schema.yml</td><td>Model column descriptions and tests</td></tr>
+          <tr><td class="mono">models/staging/</td><td>Staging models — clean and normalize raw data</td></tr>
+          <tr><td class="mono">models/intermediate/</td><td>Intermediate models — enrich with tags, search vectors</td></tr>
+          <tr><td class="mono">models/marts/</td><td>Gold marts — mart_events_api, mart_posts_api</td></tr>
+          <tr><td class="mono">seeds/tag_rules.csv</td><td>Tag taxonomy seed data</td></tr>
+          <tr><td class="mono">tests/</td><td>dbt test assertions (not null, unique, accepted values)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title">scripts/ — Operations</div>
+    <div class="table-wrap">
+      <table class="doc-table">
+        <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">init_db.sql</td><td>Database bootstrap: creates all tables, indexes, custom FTS configs, search_translations data (70+ terms). Safe to re-run.</td></tr>
+          <tr><td class="mono">pipeline_run.sh</td><td>Runs complete pipeline: scraper → dbt run → dbt test</td></tr>
+          <tr><td class="mono">daily_run.sh</td><td>Cron-ready daily: scraper → dbt run → dbt test → API health check</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title">Root Files</div>
+    <div class="table-wrap">
+      <table class="doc-table">
+        <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">docker-compose.yml</td><td>Services: api (port 8000), db (PostgreSQL 16), bot, scraper (runs once), dbt (runs once), nginx (reverse proxy)</td></tr>
+          <tr><td class="mono">CLAUDE.md</td><td>Monomind agent configuration: project overview, swarm agents with roles, memory namespace, security rules, build/test commands</td></tr>
+          <tr><td class="mono">requirements.txt</td><td>Top-level Python dependencies</td></tr>
+          <tr><td class="mono">.env</td><td>Environment variables (DB URL, API keys, AI config) — not committed to git</td></tr>
+          <tr><td class="mono">.gitignore</td><td>Ignores .env, __pycache__, .monomind/, dbt logs, ui/node_modules</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PAGE 8: ROADMAP
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="page-roadmap" class="page">
+  <div class="page-content">
+    <div class="page-header">
+      <span class="page-tag">Progress</span>
+      <h1 class="page-title">Roadmap &amp; Progress</h1>
+      <p class="page-desc">What's built (secured, tested), what's being wired up now, and what's next on the horizon.</p>
+    </div>
+
+    <div class="section-title">Phase 1: Foundation <span class="tag tag-accent" style="margin-left:8px">Complete</span></div>
+    <div class="roadmap" style="padding-left:0">
+      <div class="road-item done">
+        <span class="tag">Done</span>
+        <h4>Core Data Pipeline</h4>
+        <p>Berlin Police scraper scraping assembly data into <code>raw_assemblies</code>. dbt medallion pipeline with staging → intermediate → mart models. PostgreSQL 16 full-text search with custom <code>german_unaccent</code> and <code>english_unaccent</code> configurations. 70+ bilingual term mappings in <code>search_translations</code>.</p>
+      </div>
+      <div class="road-item done">
+        <span class="tag">Done</span>
+        <h4>REST API &amp; Blog System (Secured)</h4>
+        <p>FastAPI with 15 endpoints. 8 public read-only: events (filterable by date/district/tag/search/route), posts (published only), unified search across events and posts, tags, districts. 7 admin endpoints for submissions queue management, post publishing, AI director. All writes behind API key auth.</p>
+      </div>
+      <div class="road-item done">
+        <span class="tag">Done</span>
+        <h4>Security &amp; Authentication</h4>
+        <p>All public write endpoints removed. HTTPBearer + X-API-Key header auth. <code>secrets.compare_digest</code> timing-safe comparison. <code>admin_api_keys</code> table for key management. Full <code>review_log</code> audit trail. No open forms or public submissions.</p>
+      </div>
+      <div class="road-item done">
+        <span class="tag">Done</span>
+        <h4>Monomind Swarm &amp; Memory</h4>
+        <p>4 agents configured (project-manager, editor, content-reviewer, builder) with hierarchical topology. Memory namespace <code>uncolonised</code> stores vision, data model, security policy, API endpoints, and team roles. <code>CLAUDE.md</code> as single source of agent truth.</p>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:48px">Phase 2: Submissions Pipeline <span class="tag tag-amber" style="margin-left:8px">In Progress</span></div>
+    <div class="roadmap" style="padding-left:0">
+      <div class="road-item current">
+        <span class="tag">In Progress</span>
+        <h4>Telegram Bot Integration</h4>
+        <p>Bot framework built and tested. Whitelist auth (<code>ALLOWED_USER_IDS</code>), markdown parsing, <code>submissions</code> table storage. Currently wiring up the full loop: Telegram submission → agent review → editorial approval → publish. The bot runs but needs end-to-end flow hardening edge cases.</p>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:48px">Phase 3: Growth <span class="tag tag-muted" style="margin-left:8px">Planned</span></div>
+    <div class="roadmap" style="padding-left:0">
+      <div class="road-item next">
+        <span class="tag">Next</span>
+        <h4>Additional Scrapers</h4>
+        <p>RSS feeds from grassroots Berlin organizations (e.g., Rise Up Berlin, Berlin Migrant Solidarity). Google Calendar integration for recurring events. Instagram/Telegram channel monitoring for event announcements. Each plugs into the <code>BaseScraper</code> interface.</p>
+      </div>
+      <div class="road-item next">
+        <span class="tag">Next</span>
+        <h4>Frontend Single-Page Application</h4>
+        <p>Full SPA for browsing events, reading the blog, searching the archive, and exploring Berlin's resistance calendar. Public read-only, no login required. Uses the FastAPI public endpoints. Events map view by district. Filterable tag cloud.</p>
+      </div>
+      <div class="road-item next">
+        <span class="tag">Next</span>
+        <h4>AI Director Enhancements</h4>
+        <p>Auto-moderation of submissions (toxicity check, anti-colonial alignment). Content digest generation (weekly newsletter). Topic trend detection across events and posts. Editorial recommendations via the content-reviewer agent. Scheduled AI-powered curation reports.</p>
+      </div>
+      <div class="road-item next">
+        <span class="tag">Next</span>
+        <h4>Developer Experience</h4>
+        <p>API documentation (OpenAPI/Swagger UI customization). Postman collection export. Integration tests for the full pipeline. CI/CD with GitHub Actions. Monitoring (API health logging, scraper success rates, submission funnel metrics).</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
 
 <script>
-const BASE = 'http://localhost:8000';
+/* ── Page Switching ── */
+const pages = document.querySelectorAll('.page');
+const navLinks = document.querySelectorAll('.nav-link');
+let currentPage = 'home';
 
-// ── API health ──
+navLinks.forEach(link => {
+  link.addEventListener('click', () => {
+    const page = link.dataset.page;
+    switchPage(page);
+  });
+});
+
+function switchPage(page) {
+  if (page === currentPage) return;
+  currentPage = page;
+
+  pages.forEach(p => p.classList.remove('active'));
+  navLinks.forEach(l => l.classList.remove('active'));
+
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelector(`.nav-link[data-page="${page}"]`)?.classList.add('active');
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  closeMobileNav();
+}
+
+/* ── Sidebar toggle on mobile ── */
+const sidebar = document.getElementById('sidebar');
+const navToggle = document.getElementById('nav-toggle');
+const navOverlay = document.getElementById('nav-overlay');
+
+navToggle.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  navOverlay.classList.toggle('open');
+});
+
+navOverlay.addEventListener('click', closeMobileNav);
+
+function closeMobileNav() {
+  sidebar.classList.remove('open');
+  navOverlay.classList.remove('open');
+}
+
+/* ── Progress Bar ── */
+const progressBar = document.getElementById('progress-bar');
+window.addEventListener('scroll', () => {
+  const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+  const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  const pct = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+  progressBar.style.width = pct + '%';
+});
+
+/* ── Hero Stat Counter Animation ── */
+function animateCount(el, target, suffix) {
+  if (el.dataset.animated) return;
+  el.dataset.animated = 'true';
+  const duration = 1800;
+  const start = performance.now();
+  function tick(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(eased * target);
+    el.textContent = current.toLocaleString() + (suffix || '');
+    if (progress < 1) requestAnimationFrame(tick);
+    else el.textContent = target.toLocaleString() + (suffix || '');
+  }
+  requestAnimationFrame(tick);
+}
+
+const heroObs = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      animateCount(document.getElementById('stat-endpoints'), 15);
+      animateCount(document.getElementById('stat-agents'), 4);
+      animateCount(document.getElementById('stat-scrapers'), 1);
+      animateCount(document.getElementById('stat-tags'), 70);
+      animateCount(document.getElementById('stat-tables'), 6);
+      animateCount(document.getElementById('stat-models'), 8);
+      heroObs.disconnect();
+    }
+  });
+}, { threshold: 0.3 });
+
+heroObs.observe(document.querySelector('.hero-section'));
+
+/* ── API Health Check ── */
 async function checkAPI() {
-  const dot = document.getElementById('apiDot');
-  const text = document.getElementById('apiStatusText');
+  const dot = document.getElementById('nav-status-dot');
+  const text = document.getElementById('nav-status-text');
   try {
-    const resp = await fetch(BASE + '/health', { signal: AbortSignal.timeout(3000) });
+    const resp = await fetch('http://localhost:8000/health', { signal: AbortSignal.timeout(3000) });
     if (resp.ok) {
-      dot.className = 'api-dot online';
+      dot.style.background = 'var(--accent)';
       text.textContent = 'API online';
-      document.getElementById('api-raw').innerHTML = 'API is running. Try a query above.';
     } else throw new Error();
   } catch {
-    dot.className = 'api-dot offline';
+    dot.style.background = 'var(--muted)';
     text.textContent = 'API offline';
-    document.getElementById('api-raw').innerHTML = 'API is not running. Start it with <strong>uvicorn api.main:app --reload</strong> or <strong>docker compose up</strong>.';
   }
 }
-
-// ── API explorer ──
-async function exploreAPI() {
-  const output = document.getElementById('api-raw');
-  const tableArea = document.getElementById('api-table-area');
-  const endpoint = document.getElementById('api-endpoint').value;
-  const q = document.getElementById('api-query').value.trim();
-  const type = document.getElementById('api-type').value;
-
-  let path = endpoint;
-  const params = new URLSearchParams();
-  if (endpoint === '/events') {
-    params.set('upcoming', 'true');
-    params.set('limit', '30');
-    if (q) params.set('q', q);
-    if (type) params.set('event_type', type);
-    const qs = params.toString();
-    if (qs) path += '?' + qs;
-  }
-  if (endpoint === '/posts' && q) path += '?q=' + encodeURIComponent(q);
-
-  output.textContent = 'Loading...';
-  tableArea.innerHTML = '';
-
-  try {
-    const t0 = performance.now();
-    const resp = await fetch(BASE + path, { signal: AbortSignal.timeout(5000) });
-    const ms = Math.round(performance.now() - t0);
-    const data = await resp.json();
-
-    output.textContent = `${resp.status} ${resp.statusText}  |  ${ms}ms\n\n` + JSON.stringify(data, null, 2);
-
-    if (resp.ok && Array.isArray(data) && data.length > 0 && data[0].event_id !== undefined) {
-      renderEventTable(data, tableArea);
-    } else if (resp.ok && Array.isArray(data) && data.length > 0 && data[0].post_id !== undefined) {
-      renderPostTable(data, tableArea);
-    } else if (resp.ok && Array.isArray(data) && data.length > 0 && data[0].slug !== undefined) {
-      renderTagTable(data, tableArea);
-    } else if (resp.ok && Array.isArray(data) && data.length > 0 && data[0].district_name !== undefined) {
-      renderDistrictTable(data, tableArea);
-    }
-  } catch(e) {
-    output.textContent = 'Error: ' + e.message;
-  }
-}
-
-function renderEventTable(rows, area) {
-  let html = '<table id="api-table"><thead><tr><th>Date</th><th>Title</th><th>Type</th><th>District</th><th>Tags</th></tr></thead><tbody>';
-  rows.forEach(r => {
-    const tags = Array.isArray(r.tags) ? r.tags.map(t => `<span class="tag-badge">${t.slug}</span>`).join('') : '';
-    const typeClass = 'type-badge type-' + (r.event_type || 'assembly');
-    html += `<tr><td>${r.event_date || ''}</td><td>${r.title || ''}</td><td><span class="${typeClass}">${r.event_type || ''}</span></td><td>${r.district_name || ''}</td><td>${tags}</td></tr>`;
-  });
-  html += '</tbody></table>';
-  area.innerHTML = html;
-}
-
-function renderPostTable(rows, area) {
-  let html = '<table id="api-table"><thead><tr><th>Title</th><th>Author</th><th>Published</th><th>Tags</th></tr></thead><tbody>';
-  rows.forEach(r => {
-    const tags = Array.isArray(r.tags) ? r.tags.map(t => `<span class="tag-badge">${t}</span>`).join('') : '';
-    html += `<tr><td>${r.title || ''}</td><td>${r.author_name || ''}</td><td>${r.published_at ? new Date(r.published_at).toLocaleDateString() : ''}</td><td>${tags}</td></tr>`;
-  });
-  html += '</tbody></table>';
-  area.innerHTML = html;
-}
-
-function renderTagTable(rows, area) {
-  let html = '<table id="api-table"><thead><tr><th>Slug</th><th>Label (DE)</th><th>Label (EN)</th><th>Count</th></tr></thead><tbody>';
-  rows.forEach(r => {
-    html += `<tr><td><span class="tag-badge">${r.slug}</span></td><td>${r.label_de || ''}</td><td>${r.label_en || ''}</td><td>${r.event_count || 0}</td></tr>`;
-  });
-  html += '</tbody></table>';
-  area.innerHTML = html;
-}
-
-function renderDistrictTable(rows, area) {
-  let html = '<table id="api-table"><thead><tr><th>District</th><th>Events</th></tr></thead><tbody>';
-  rows.forEach(r => {
-    html += `<tr><td>${r.district_name}</td><td>${r.event_count || 0}</td></tr>`;
-  });
-  html += '</tbody></table>';
-  area.innerHTML = html;
-}
-
-// ── Init ──
 checkAPI();
 </script>
 </body>
