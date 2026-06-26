@@ -3,375 +3,592 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Berlin Demos — Dev Test UI</title>
+<title>Uncolonised — Project Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: system-ui, sans-serif; font-size: 14px; background: #f5f5f4; color: #1c1c1a; }
-  header { background: #1c1c1a; color: #fff; padding: 12px 20px; display: flex; align-items: center; gap: 12px; }
-  header h1 { font-size: 15px; font-weight: 500; }
-  .badge { background: #3b82f6; color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 20px; }
-  .badge.ok { background: #16a34a; }
-  .badge.err { background: #dc2626; }
-  .layout { display: grid; grid-template-columns: 260px 1fr; height: calc(100vh - 44px); }
-  nav { background: #fff; border-right: 1px solid #e5e5e3; overflow-y: auto; padding: 12px 0; }
-  nav section { padding: 0 12px 16px; }
-  nav h2 { font-size: 11px; font-weight: 600; color: #6b7280; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 8px; padding-top: 8px; }
-  .test-btn { display: block; width: 100%; text-align: left; padding: 8px 10px; border-radius: 6px; border: none; background: transparent; cursor: pointer; font-size: 13px; color: #374151; transition: background .1s; }
-  .test-btn:hover { background: #f3f4f6; }
-  .test-btn.active { background: #eff6ff; color: #1d4ed8; font-weight: 500; }
-  .test-btn .url { display: block; font-size: 11px; color: #9ca3af; margin-top: 2px; font-family: monospace; }
-  main { display: flex; flex-direction: column; overflow: hidden; }
-  .toolbar { padding: 10px 16px; border-bottom: 1px solid #e5e5e3; background: #fff; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .toolbar label { font-size: 12px; color: #6b7280; }
-  .toolbar input, .toolbar select { border: 1px solid #d1d5db; border-radius: 5px; padding: 4px 8px; font-size: 13px; }
-  .toolbar input { width: 180px; }
-  button.run { background: #1d4ed8; color: #fff; border: none; border-radius: 5px; padding: 6px 14px; font-size: 13px; cursor: pointer; }
-  button.run:hover { background: #1e40af; }
-  .output { display: grid; grid-template-rows: 1fr 1fr; flex: 1; overflow: hidden; }
-  .pane { overflow: auto; padding: 12px 16px; }
-  .pane-header { font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-  .pane:first-child { border-bottom: 1px solid #e5e5e3; }
-  pre { background: #1c1c1a; color: #d4d4d4; padding: 12px; border-radius: 6px; font-size: 12px; white-space: pre-wrap; word-break: break-all; line-height: 1.6; }
-  table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  th { background: #f9fafb; padding: 6px 10px; text-align: left; font-weight: 500; border-bottom: 1px solid #e5e5e3; position: sticky; top: 0; }
-  td { padding: 6px 10px; border-bottom: 1px solid #f3f4f6; vertical-align: top; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  tr:hover td { background: #f9fafb; }
-  .tag { display: inline-block; background: #dbeafe; color: #1e40af; font-size: 10px; padding: 1px 6px; border-radius: 20px; margin: 1px; }
-  .event-type { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 20px; }
-  .event-type.march   { background: #fef3c7; color: #92400e; }
-  .event-type.vigil   { background: #dcfce7; color: #14532d; }
-  .event-type.rally   { background: #fce7f3; color: #831843; }
-  .event-type.sit-in  { background: #ede9fe; color: #4c1d95; }
-  .event-type.strike  { background: #fee2e2; color: #7f1d1d; }
-  .event-type.assembly { background: #f3f4f6; color: #374151; }
-  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-  .status-dot.ok  { background: #16a34a; }
-  .status-dot.err { background: #dc2626; }
-  .status-dot.pending { background: #d1d5db; }
-  .stat-row { display: flex; gap: 16px; flex-wrap: wrap; }
-  .stat { background: #f9fafb; border: 1px solid #e5e5e3; border-radius: 6px; padding: 10px 14px; }
-  .stat .n { font-size: 22px; font-weight: 600; color: #1d4ed8; }
-  .stat .l { font-size: 11px; color: #6b7280; margin-top: 2px; }
-  #health-banner { padding: 6px 16px; font-size: 12px; display: none; }
-  #health-banner.ok  { background: #dcfce7; color: #14532d; display: block; }
-  #health-banner.err { background: #fee2e2; color: #7f1d1d; display: block; }
+:root {
+  --bg: #0f0f11;
+  --surface: #1a1a1e;
+  --surface2: #242429;
+  --border: #2c2c33;
+  --text: #e4e4e7;
+  --text2: #a1a1aa;
+  --text3: #71717a;
+  --accent: #f59e0b;
+  --accent2: #10b981;
+  --accent3: #3b82f6;
+  --red: #ef4444;
+  --font: 'Inter', system-ui, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--accent); color: #000; }
+
+/* ── Nav ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(15,15,17,.85); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px; height: 56px;
+  display: flex; align-items: center; gap: 24px;
+}
+nav .logo { font-weight: 700; font-size: 15px; letter-spacing: -.02em; }
+nav .logo span { color: var(--accent); }
+nav a { color: var(--text2); text-decoration: none; font-size: 13px; font-weight: 500; transition: color .2s; }
+nav a:hover { color: var(--text); }
+nav .spacer { flex: 1; }
+nav .gh-link { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 6px; background: var(--surface); border: 1px solid var(--border); font-size: 12px; color: var(--text2); text-decoration: none; transition: all .2s; }
+nav .gh-link:hover { border-color: var(--accent); color: var(--text); }
+
+/* ── Sections ── */
+section { padding: 80px 24px; max-width: 1100px; margin: 0 auto; }
+.section-label { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+h2 { font-size: 28px; font-weight: 700; letter-spacing: -.03em; margin-bottom: 16px; }
+h2 .hl { color: var(--accent); }
+p.sub { color: var(--text2); font-size: 15px; max-width: 640px; line-height: 1.7; }
+
+/* ── Hero ── */
+#hero {
+  min-height: 100vh; display: flex; align-items: center;
+  padding-top: 56px; max-width: none;
+  background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(245,158,11,.06) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 40% at 20% 70%, rgba(16,185,129,.04) 0%, transparent 50%);
+}
+#hero .inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+#hero .badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 500; background: rgba(245,158,11,.12); color: var(--accent); border: 1px solid rgba(245,158,11,.2); margin-bottom: 20px; }
+#hero .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+#hero h1 { font-size: clamp(36px,6vw,64px); font-weight: 800; letter-spacing: -.04em; line-height: 1.05; margin-bottom: 20px; }
+#hero h1 .hl { background: linear-gradient(135deg, var(--accent), #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+#hero p { font-size: 17px; color: var(--text2); max-width: 560px; line-height: 1.7; margin-bottom: 32px; }
+#hero .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all .2s; cursor: pointer; border: none; font-family: var(--font); }
+.btn-primary { background: var(--accent); color: #000; }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(245,158,11,.25); }
+.btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--surface2); border-color: var(--text3); }
+.btn-outline { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+.btn-outline:hover { color: var(--text); border-color: var(--text3); }
+
+/* ── Stats bar ── */
+.stats-bar {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 12px;
+  margin-top: 48px; padding: 20px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border);
+}
+.stat-item { text-align: center; }
+.stat-item .num { font-size: 28px; font-weight: 700; letter-spacing: -.03em; }
+.stat-item .num.accent { color: var(--accent); }
+.stat-item .num.accent2 { color: var(--accent2); }
+.stat-item .num.accent3 { color: var(--accent3); }
+.stat-item .label { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+/* ── Cards grid ── */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap: 16px; margin-top: 32px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px;
+  transition: all .2s;
+}
+.card:hover { border-color: var(--text3); transform: translateY(-2px); }
+.card .icon { font-size: 24px; margin-bottom: 12px; }
+.card h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+.card p { font-size: 13px; color: var(--text2); line-height: 1.6; }
+.card .link { display: inline-flex; align-items: center; gap: 4px; margin-top: 12px; font-size: 12px; font-weight: 500; color: var(--accent); text-decoration: none; }
+.card .link:hover { text-decoration: underline; }
+
+/* ── Architecture ── */
+.arch-flow {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  flex-wrap: wrap; margin-top: 32px; padding: 32px; background: var(--surface);
+  border-radius: 12px; border: 1px solid var(--border);
+}
+.arch-node {
+  padding: 12px 20px; border-radius: 8px; font-size: 12px; font-weight: 500;
+  text-align: center; min-width: 100px;
+}
+.arch-node.source { background: rgba(59,130,246,.15); color: #60a5fa; border: 1px solid rgba(59,130,246,.3); }
+.arch-node.bronze { background: rgba(245,158,11,.15); color: var(--accent); border: 1px solid rgba(245,158,11,.3); }
+.arch-node.silver { background: rgba(148,163,184,.15); color: #cbd5e1; border: 1px solid rgba(148,163,184,.3); }
+.arch-node.gold { background: rgba(16,185,129,.15); color: var(--accent2); border: 1px solid rgba(16,185,129,.3); }
+.arch-arrow { color: var(--text3); font-size: 18px; font-weight: 300; }
+
+/* ── Repo Map ── */
+.repo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 16px; margin-top: 32px; }
+.repo-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px;
+  transition: all .2s; text-decoration: none; color: inherit; display: block;
+}
+.repo-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.repo-card .path { font-family: var(--mono); font-size: 12px; color: var(--accent); margin-bottom: 6px; }
+.repo-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.repo-card p { font-size: 12px; color: var(--text3); line-height: 1.5; }
+.repo-card .files { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+.repo-card .files span {
+  font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 4px;
+  background: var(--surface2); color: var(--text2);
+}
+
+/* ── Roadmap ── */
+.roadmap { position: relative; margin-top: 32px; padding-left: 32px; }
+.roadmap::before { content: ''; position: absolute; left: 11px; top: 8px; bottom: 8px; width: 2px; background: var(--border); }
+.road-item { position: relative; padding: 0 0 32px 24px; }
+.road-item::before { content: ''; position: absolute; left: -25px; top: 6px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid; }
+.road-item.done::before { background: var(--accent2); border-color: var(--accent2); }
+.road-item.current::before { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px rgba(245,158,11,.2); }
+.road-item.next::before { background: var(--surface2); border-color: var(--text3); }
+.road-item .tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-bottom: 4px; }
+.road-item.done .tag { background: rgba(16,185,129,.15); color: var(--accent2); }
+.road-item.current .tag { background: rgba(245,158,11,.15); color: var(--accent); }
+.road-item.next .tag { background: var(--surface2); color: var(--text3); }
+.road-item h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.road-item p { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+/* ── Contribution ── */
+.contribute-steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 16px; margin-top: 32px; }
+.step { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; text-align: center; }
+.step .num { width: 36px; height: 36px; border-radius: 50%; background: rgba(245,158,11,.15); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; margin: 0 auto 12px; }
+.step h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.step p { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+/* ── Footer ── */
+footer { text-align: center; padding: 48px 24px; border-top: 1px solid var(--border); color: var(--text3); font-size: 13px; }
+footer a { color: var(--accent); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+/* ── API Explorer ── */
+.api-bar {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  margin-top: 16px; padding: 12px 16px; background: var(--surface);
+  border-radius: 8px; border: 1px solid var(--border);
+}
+.api-bar input, .api-bar select {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); border-radius: 6px; padding: 6px 12px;
+  font-size: 13px; font-family: var(--mono);
+}
+.api-bar input { flex: 1; min-width: 160px; }
+.api-bar button { padding: 6px 16px; border-radius: 6px; border: none; background: var(--accent); color: #000; font-weight: 600; font-size: 12px; cursor: pointer; font-family: var(--font); }
+.api-bar select { font-family: var(--font); }
+#api-output { margin-top: 12px; }
+#api-output pre {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px; font-family: var(--mono);
+  font-size: 12px; line-height: 1.6; overflow-x: auto;
+  color: var(--text2); max-height: 400px; overflow-y: auto;
+}
+#api-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+#api-table th { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text3); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+#api-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text2); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#api-table tr:hover td { background: var(--surface); }
+.tag-badge { display: inline-block; padding: 1px 8px; border-radius: 100px; font-size: 10px; background: rgba(59,130,246,.15); color: #60a5fa; margin: 1px; }
+.type-badge { display: inline-block; padding: 1px 8px; border-radius: 100px; font-size: 10px; }
+.type-march { background: rgba(245,158,11,.15); color: var(--accent); }
+.type-vigil { background: rgba(16,185,129,.15); color: var(--accent2); }
+.type-rally { background: rgba(236,72,153,.15); color: #f472b6; }
+.type-sit-in { background: rgba(139,92,246,.15); color: #a78bfa; }
+.type-strike { background: rgba(239,68,68,.15); color: #f87171; }
+.type-assembly { background: var(--surface2); color: var(--text2); }
+#api-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+.api-dot { width: 8px; height: 8px; border-radius: 50%; }
+.api-dot.online { background: var(--accent2); }
+.api-dot.offline { background: var(--red); }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  nav { padding: 0 16px; gap: 12px; }
+  nav .gh-link span { display: none; }
+  section { padding: 60px 16px; }
+  .card-grid, .repo-grid { grid-template-columns: 1fr; }
+  .arch-flow { flex-direction: column; }
+  .arch-arrow { transform: rotate(90deg); }
+  .stats-bar { grid-template-columns: repeat(2,1fr); }
+}
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Berlin Demos — Dev Test UI</h1>
-  <span class="badge" id="api-badge">checking API…</span>
-  <span style="font-size:12px;color:#9ca3af;margin-left:auto">API: http://localhost:8000</span>
-</header>
-
-<div id="health-banner"></div>
-
-<div class="layout">
+<!-- ── Nav ──────────────────────────────────────────────────── -->
 <nav>
-  <section>
-    <h2>Health</h2>
-    <button class="test-btn" onclick="runTest('health')">
-      Health check
-      <span class="url">GET /health</span>
-    </button>
-  </section>
-  <section>
-    <h2>Events</h2>
-    <button class="test-btn" onclick="runTest('events_upcoming')">
-      Upcoming events
-      <span class="url">GET /events</span>
-    </button>
-    <button class="test-btn" onclick="runTest('events_marches')">
-      Marches only
-      <span class="url">GET /events?event_type=march</span>
-    </button>
-    <button class="test-btn" onclick="runTest('events_vigils')">
-      Vigils only
-      <span class="url">GET /events?event_type=vigil</span>
-    </button>
-    <button class="test-btn" onclick="runTest('events_mitte')">
-      District: Mitte
-      <span class="url">GET /events?district=Mitte</span>
-    </button>
-    <button class="test-btn" onclick="runTest('events_tag_climate')">
-      Tag: climate
-      <span class="url">GET /events?tag=climate</span>
-    </button>
-    <button class="test-btn" onclick="runTest('events_tag_housing')">
-      Tag: housing
-      <span class="url">GET /events?tag=housing</span>
-    </button>
-    <button class="test-btn" onclick="runTest('events_search')">
-      Search: "Miete"
-      <span class="url">GET /events?q=Miete</span>
-    </button>
-    <button class="test-btn" onclick="runTest('events_first')">
-      Single event (id=1)
-      <span class="url">GET /events/1</span>
-    </button>
-  </section>
-  <section>
-    <h2>Lookups</h2>
-    <button class="test-btn" onclick="runTest('tags')">
-      All tags + counts
-      <span class="url">GET /tags</span>
-    </button>
-    <button class="test-btn" onclick="runTest('districts')">
-      All districts + counts
-      <span class="url">GET /districts</span>
-    </button>
-  </section>
-  <section>
-    <h2>Edge cases</h2>
-    <button class="test-btn" onclick="runTest('events_404')">
-      404 — event not found
-      <span class="url">GET /events/999999</span>
-    </button>
-    <button class="test-btn" onclick="runTest('events_bad_limit')">
-      Bad limit param
-      <span class="url">GET /events?limit=999</span>
-    </button>
-    <button class="test-btn" onclick="runTest('events_all_filters')">
-      Multiple filters
-      <span class="url">GET /events?tag=climate&upcoming=true</span>
-    </button>
-  </section>
-  <section>
-    <h2>Custom</h2>
-    <div style="display:flex;flex-direction:column;gap:6px">
-      <input id="custom-path" placeholder="/events?q=Demo" style="border:1px solid #d1d5db;border-radius:5px;padding:5px 8px;font-size:12px;font-family:monospace">
-      <button class="test-btn" style="background:#eff6ff;color:#1d4ed8" onclick="runCustom()">Run custom request</button>
-    </div>
-  </section>
+  <div class="logo">Uncolon<span>ised</span></div>
+  <a href="#vision">Vision</a>
+  <a href="#architecture">Architecture</a>
+  <a href="#repo">Repository</a>
+  <a href="#roadmap">Roadmap</a>
+  <a href="#api">API</a>
+  <a href="#contribute">Contribute</a>
+  <div class="spacer"></div>
+  <div id="api-status"><span class="api-dot offline" id="apiDot"></span><span id="apiStatusText">checking...</span></div>
+  <a class="gh-link" href="https://github.com/Javid912/Uncolonised" target="_blank">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    <span>GitHub</span>
+  </a>
 </nav>
 
-<main>
-  <div class="toolbar">
-    <label>Filter:</label>
-    <input id="tb-q" placeholder="full-text search…" oninput="liveFilter()">
-    <label>Type:</label>
-    <select id="tb-type" onchange="liveFilter()">
+<!-- ── Hero ──────────────────────────────────────────────────── -->
+<section id="hero">
+<div class="inner">
+  <div class="badge"><span class="dot"></span> v1.0.0 — Open Source</div>
+  <h1>Uncolon<span class="hl">ised</span></h1>
+  <p>A collectively written digital magazine and event platform for anti-colonial, anti-imperialist movements in Berlin. Aggregates protests, publishes articles, and indexes resistance — powered by AI.</p>
+  <div class="actions">
+    <a class="btn btn-primary" href="#architecture">Explore the project</a>
+    <a class="btn btn-secondary" href="#contribute">Contribute</a>
+    <a class="btn btn-outline" href="https://github.com/Javid912/Uncolonised" target="_blank">View on GitHub</a>
+  </div>
+  <div class="stats-bar">
+    <div class="stat-item"><div class="num accent">21</div><div class="label">Tags</div></div>
+    <div class="stat-item"><div class="num accent2">12</div><div class="label">API Endpoints</div></div>
+    <div class="stat-item"><div class="num accent3">4</div><div class="label">Scrapers</div></div>
+    <div class="stat-item"><div class="num">Python</div><div class="label">Backend</div></div>
+    <div class="stat-item"><div class="num">Postgres</div><div class="label">Database</div></div>
+    <div class="stat-item"><div class="num">dbt</div><div class="label">Transform</div></div>
+  </div>
+</div>
+</section>
+
+<!-- ── Vision ────────────────────────────────────────────────── -->
+<section id="vision">
+  <div class="section-label">Why this exists</div>
+  <h2>Vision &amp; <span class="hl">Purpose</span></h2>
+  <p class="sub">Berlin is a city of resistance. Protests, vigils, marches, and assemblies happen every day — but they're scattered across police bulletins, Instagram posts, and grassroots calendars. Uncolonised brings them together.</p>
+  <div class="card-grid">
+    <div class="card">
+      <div class="icon">📡</div>
+      <h3>Multi-Source Aggregation</h3>
+      <p>Scrapers pull from the Berlin Police API and other sources into a unified database. Adding a new source is a single Python class.</p>
+      <a class="link" href="https://github.com/Javid912/Uncolonised/tree/main/scraper/sources" target="_blank">View scrapers &rarr;</a>
+    </div>
+    <div class="card">
+      <div class="icon">📝</div>
+      <h3>Collective Blog</h3>
+      <p>A shared digital magazine where anyone can publish articles. No auth, no gatekeeping — just markdown and a title.</p>
+      <a class="link" href="https://github.com/Javid912/Uncolonised/blob/main/api/main.py#L207" target="_blank">Create a post &rarr;</a>
+    </div>
+    <div class="card">
+      <div class="icon">🔍</div>
+      <h3>Bilingual Search</h3>
+      <p>Full-text search in German and English with automatic translation expansion. "Climate housing" finds "Klima Wohnen" events.</p>
+      <a class="link" href="https://github.com/Javid912/Uncolonised/blob/main/api/main.py#L85" target="_blank">Search logic &rarr;</a>
+    </div>
+    <div class="card">
+      <div class="icon">🤖</div>
+      <h3>AI Director</h3>
+      <p>An AI agent (Ollama or OpenAI) that auto-tags content, summarizes events, and curates the platform — politically independent.</p>
+      <a class="link" href="https://github.com/Javid912/Uncolonised/blob/main/api/main.py#L149" target="_blank">AI endpoints &rarr;</a>
+    </div>
+    <div class="card">
+      <div class="icon">🧩</div>
+      <h3>dbt Pipeline</h3>
+      <p>Bronze &rarr; Silver &rarr; Gold medallion architecture. Raw scraped data is cleaned, enriched with tags and districts, then materialized for fast API queries.</p>
+      <a class="link" href="https://github.com/Javid912/Uncolonised/tree/main/dbt_project/models" target="_blank">dbt models &rarr;</a>
+    </div>
+    <div class="card">
+      <div class="icon">🐳</div>
+      <h3>Docker Ready</h3>
+      <p>One command to spin up PostgreSQL, FastAPI, scrapers, and the test UI. Works on any machine.</p>
+      <a class="link" href="https://github.com/Javid912/Uncolonised/blob/main/docker-compose.yml" target="_blank">docker-compose.yml &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Architecture ──────────────────────────────────────────── -->
+<section id="architecture">
+  <div class="section-label">How it works</div>
+  <h2>Data <span class="hl">Architecture</span></h2>
+  <p class="sub">A medallion pipeline: raw scraped data flows through dbt transformations into indexed API tables. PostgreSQL handles full-text search with custom German/English stemmers.</p>
+  <div class="arch-flow">
+    <div class="arch-node source">Police API</div>
+    <div class="arch-arrow">&rarr;</div>
+    <div class="arch-node source">RSS Feeds</div>
+    <div class="arch-arrow">&rarr;</div>
+    <div class="arch-node source">Submissions</div>
+    <div class="arch-arrow">&rarr;</div>
+    <div class="arch-node bronze">raw_*</div>
+    <div class="arch-arrow">&rarr;</div>
+    <div class="arch-node silver">dbt (stg &rarr; int)</div>
+    <div class="arch-arrow">&rarr;</div>
+    <div class="arch-node gold">mart_*_api</div>
+    <div class="arch-arrow">&rarr;</div>
+    <div class="arch-node source" style="background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.3);color:var(--accent)">FastAPI</div>
+  </div>
+  <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+    <span style="font-size:11px;padding:4px 12px;border-radius:4px;background:rgba(59,130,246,.15);color:#60a5fa">42 scrapers possible</span>
+    <span style="font-size:11px;padding:4px 12px;border-radius:4px;background:rgba(245,158,11,.15);color:var(--accent)">Bronze: raw JSON dump</span>
+    <span style="font-size:11px;padding:4px 12px;border-radius:4px;background:rgba(148,163,184,.15);color:#cbd5e1">Silver: cleaned + enriched</span>
+    <span style="font-size:11px;padding:4px 12px;border-radius:4px;background:rgba(16,185,129,.15);color:var(--accent2)">Gold: indexed, API-ready</span>
+  </div>
+</section>
+
+<!-- ── Repository Map ────────────────────────────────────────── -->
+<section id="repo">
+  <div class="section-label">Codebase</div>
+  <h2>Repository <span class="hl">Map</span></h2>
+  <p class="sub">Key files and directories — click to open on GitHub.</p>
+  <div class="repo-grid">
+    <a class="repo-card" href="https://github.com/Javid912/Uncolonised/tree/main/api" target="_blank">
+      <div class="path">api/</div>
+      <h4>FastAPI Application</h4>
+      <p>REST API with 12 endpoints: events, posts, search, submissions, AI director.</p>
+      <div class="files"><span>main.py</span><span>requirements.txt</span><span>Dockerfile</span></div>
+    </a>
+    <a class="repo-card" href="https://github.com/Javid912/Uncolonised/tree/main/scraper" target="_blank">
+      <div class="path">scraper/</div>
+      <h4>Event Scrapers</h4>
+      <p>Multi-source scraper framework with BaseScraper interface. Add sources by subclassing.</p>
+      <div class="files"><span>run_all.py</span><span>sources/</span><span>berlin_police.py</span></div>
+    </a>
+    <a class="repo-card" href="https://github.com/Javid912/Uncolonised/tree/main/dbt_project" target="_blank">
+      <div class="path">dbt_project/</div>
+      <h4>dbt Transformations</h4>
+      <p>8 models across staging, intermediate, and marts layers. GIN-indexed search vectors.</p>
+      <div class="files"><span>dbt_project.yml</span><span>models/</span><span>seeds/tag_rules.csv</span></div>
+    </a>
+    <a class="repo-card" href="https://github.com/Javid912/Uncolonised/tree/main/scripts" target="_blank">
+      <div class="path">scripts/</div>
+      <h4>Database &amp; Pipeline</h4>
+      <p>Schema bootstrap, cron scripts, Docker entrypoint. One script runs everything.</p>
+      <div class="files"><span>init_db.sql</span><span>pipeline_run.sh</span><span>daily_run.sh</span></div>
+    </a>
+    <a class="repo-card" href="https://github.com/Javid912/Uncolonised/blob/main/docker-compose.yml" target="_blank">
+      <div class="path">docker-compose.yml</div>
+      <h4>Infrastructure</h4>
+      <p>4 services: PostgreSQL 16, FastAPI, pipeline (scrapers + dbt), nginx UI.</p>
+      <div class="files"><span>db</span><span>api</span><span>pipeline</span><span>ui</span></div>
+    </a>
+    <a class="repo-card" href="https://github.com/Javid912/Uncolonised/blob/main/CLAUDE.md" target="_blank">
+      <div class="path">CLAUDE.md</div>
+      <h4>AI Agent Configuration</h4>
+      <p>Monomind swarm setup: project-manager, editor, content-reviewer, builder agents.</p>
+      <div class="files"><span>project-vision</span><span>team-roles</span><span>data-model</span></div>
+    </a>
+  </div>
+</section>
+
+<!-- ── Roadmap ───────────────────────────────────────────────── -->
+<section id="roadmap">
+  <div class="section-label">Progress</div>
+  <h2>Roadmap &amp; <span class="hl">Progress</span></h2>
+  <p class="sub">What's built, what's in progress, and what's coming next.</p>
+  <div class="roadmap">
+    <div class="road-item done">
+      <span class="tag">Done</span>
+      <h4>Core Data Pipeline</h4>
+      <p>Berlin Police scraper, dbt medallion pipeline (stg &rarr; int &rarr; mart), PostgreSQL full-text search with bilingual support.</p>
+    </div>
+    <div class="road-item done">
+      <span class="tag">Done</span>
+      <h4>REST API</h4>
+      <p>FastAPI with 12 endpoints: events CRUD, posts, submissions, unified search, tags, districts, AI director.</p>
+    </div>
+    <div class="road-item done">
+      <span class="tag">Done</span>
+      <h4>Blog Platform</h4>
+      <p>Collective blogging with markdown posts, tags, author attribution. Open publishing, no auth required.</p>
+    </div>
+    <div class="road-item current">
+      <span class="tag">In Progress</span>
+      <h4>Contributor Dashboard</h4>
+      <p>Project landing page with architecture visualization, repo map, live API explorer, and contribution guide.</p>
+    </div>
+    <div class="road-item next">
+      <span class="tag">Next</span>
+      <h4>Additional Scrapers</h4>
+      <p>RSS feeds from grassroots orgs, Instagram event pages, Google Calendar integrations. Plug into the BaseScraper interface.</p>
+    </div>
+    <div class="road-item next">
+      <span class="tag">Next</span>
+      <h4>AI Director Enhancements</h4>
+      <p>Auto-moderation of submissions, content summarization digests, topic trend detection across events.</p>
+    </div>
+    <div class="road-item next">
+      <span class="tag">Next</span>
+      <h4>Frontend Application</h4>
+      <p>A proper SPA or static site for browsing events, reading the blog, searching, and submitting content.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── API Explorer ──────────────────────────────────────────── -->
+<section id="api">
+  <div class="section-label">Explore</div>
+  <h2>Live API <span class="hl">Explorer</span></h2>
+  <p class="sub">Try the API directly. Filter events, search across languages, browse tags. Requires the API to be running locally.</p>
+
+  <div class="api-bar">
+    <input id="api-query" placeholder="search terms (e.g. climate housing)" value="">
+    <select id="api-type">
       <option value="">all types</option>
       <option>march</option><option>vigil</option><option>rally</option>
       <option>sit-in</option><option>strike</option><option>assembly</option>
     </select>
-    <label>Tag:</label>
-    <select id="tb-tag" onchange="liveFilter()">
-      <option value="">all tags</option>
+    <select id="api-endpoint">
+      <option value="/events">GET /events</option>
+      <option value="/tags">GET /tags</option>
+      <option value="/districts">GET /districts</option>
+      <option value="/posts">GET /posts</option>
     </select>
-    <button class="run" onclick="liveFilter()">Reload</button>
-    <span id="result-count" style="font-size:12px;color:#6b7280;margin-left:auto"></span>
+    <button onclick="exploreAPI()">Run</button>
   </div>
 
-  <div class="output">
-    <div class="pane" id="pane-table">
-      <div class="pane-header">
-        <span class="status-dot pending" id="dot-table"></span>
-        Results
-      </div>
-      <div id="table-area"><p style="color:#9ca3af">Select a test from the left panel.</p></div>
+  <div id="api-output">
+    <pre id="api-raw">Click "Run" to query the API, or start the server with <strong>uvicorn api.main:app --reload</strong>.</pre>
+    <div id="api-table-area"></div>
+  </div>
+</section>
+
+<!-- ── Contribute ───────────────────────────────────────────── -->
+<section id="contribute">
+  <div class="section-label">Join</div>
+  <h2>How to <span class="hl">Contribute</span></h2>
+  <p class="sub">Uncolonised is open to anyone who shares the vision. No experience needed — writers, scraper hackers, designers, and data people are all welcome.</p>
+  <div class="contribute-steps">
+    <div class="step">
+      <div class="num">1</div>
+      <h4>Clone &amp; Run</h4>
+      <p><code>git clone</code>, <code>docker compose up</code>, and you have a running instance. See the README.</p>
     </div>
-    <div class="pane" id="pane-raw">
-      <div class="pane-header">
-        <span class="status-dot pending" id="dot-raw"></span>
-        Raw response
-        <span id="raw-meta" style="font-weight:400;color:#9ca3af"></span>
-      </div>
-      <pre id="raw-area">—</pre>
+    <div class="step">
+      <div class="num">2</div>
+      <h4>Write an Article</h4>
+      <p><code>POST /posts</code> with a title, markdown body, and your name. No account needed.</p>
+    </div>
+    <div class="step">
+      <div class="num">3</div>
+      <h4>Add a Scraper</h4>
+      <p>Create a class in <code>scraper/sources/</code>, implement <code>BaseScraper</code>, register it in <code>run_all.py</code>.</p>
+    </div>
+    <div class="step">
+      <div class="num">4</div>
+      <h4>Submit Events</h4>
+      <p>Use <code>POST /submit</code> to tip us about events. The AI director reviews and publishes.</p>
     </div>
   </div>
-</main>
-</div>
+  <div style="text-align:center;margin-top:40px">
+    <a class="btn btn-primary" href="https://github.com/Javid912/Uncolonised" target="_blank">Star on GitHub</a>
+    <a class="btn btn-secondary" href="https://github.com/Javid912/Uncolonised/issues" target="_blank" style="margin-left:8px">Open an Issue</a>
+  </div>
+</section>
+
+<!-- ── Footer ────────────────────────────────────────────────── -->
+<footer>
+  Uncolonised &mdash; a collectively written project for anti-colonial movements in Berlin.<br>
+  Open source &middot; Built with Python, PostgreSQL, dbt, FastAPI, and <a href="https://monomind.ai" target="_blank">Monomind</a>.
+</footer>
 
 <script>
 const BASE = 'http://localhost:8000';
-let lastData = null;
 
-const TESTS = {
-  health:           '/health',
-  events_upcoming:  '/events?upcoming=true&limit=50',
-  events_marches:   '/events?event_type=march&limit=50',
-  events_vigils:    '/events?event_type=vigil&limit=50',
-  events_mitte:     '/events?district=Mitte&limit=50',
-  events_tag_climate: '/events?tag=climate&limit=50',
-  events_tag_housing: '/events?tag=housing&limit=50',
-  events_search:    '/events?q=Miete&limit=50',
-  events_first:     '/events/1',
-  tags:             '/tags',
-  districts:        '/districts',
-  events_404:       '/events/999999',
-  events_bad_limit: '/events?limit=999',
-  events_all_filters: '/events?tag=climate&upcoming=true&limit=50',
-};
-
-async function callAPI(path) {
-  const t0 = performance.now();
-  const resp = await fetch(BASE + path);
-  const ms = Math.round(performance.now() - t0);
-  const data = await resp.json().catch(() => null);
-  return { resp, data, ms };
+// ── API health ──
+async function checkAPI() {
+  const dot = document.getElementById('apiDot');
+  const text = document.getElementById('apiStatusText');
+  try {
+    const resp = await fetch(BASE + '/health', { signal: AbortSignal.timeout(3000) });
+    if (resp.ok) {
+      dot.className = 'api-dot online';
+      text.textContent = 'API online';
+      document.getElementById('api-raw').innerHTML = 'API is running. Try a query above.';
+    } else throw new Error();
+  } catch {
+    dot.className = 'api-dot offline';
+    text.textContent = 'API offline';
+    document.getElementById('api-raw').innerHTML = 'API is not running. Start it with <strong>uvicorn api.main:app --reload</strong> or <strong>docker compose up</strong>.';
+  }
 }
 
-async function runTest(key) {
-  document.querySelectorAll('.test-btn').forEach(b => b.classList.remove('active'));
-  event.currentTarget.classList.add('active');
-  await display(TESTS[key]);
-}
+// ── API explorer ──
+async function exploreAPI() {
+  const output = document.getElementById('api-raw');
+  const tableArea = document.getElementById('api-table-area');
+  const endpoint = document.getElementById('api-endpoint').value;
+  const q = document.getElementById('api-query').value.trim();
+  const type = document.getElementById('api-type').value;
 
-async function runCustom() {
-  const path = document.getElementById('custom-path').value.trim();
-  if (!path) return;
-  await display(path);
-}
+  let path = endpoint;
+  const params = new URLSearchParams();
+  if (endpoint === '/events') {
+    params.set('upcoming', 'true');
+    params.set('limit', '30');
+    if (q) params.set('q', q);
+    if (type) params.set('event_type', type);
+    const qs = params.toString();
+    if (qs) path += '?' + qs;
+  }
+  if (endpoint === '/posts' && q) path += '?q=' + encodeURIComponent(q);
 
-async function display(path) {
-  setDot('table', 'pending'); setDot('raw', 'pending');
-  document.getElementById('raw-area').textContent = 'Loading…';
-  document.getElementById('table-area').innerHTML = '';
+  output.textContent = 'Loading...';
+  tableArea.innerHTML = '';
 
   try {
-    const { resp, data, ms } = await callAPI(path);
-    const ok = resp.ok;
-    setDot('table', ok ? 'ok' : 'err');
-    setDot('raw', ok ? 'ok' : 'err');
-    document.getElementById('raw-meta').textContent =
-      `${resp.status} ${resp.statusText} · ${ms}ms`;
-    document.getElementById('raw-area').textContent =
-      JSON.stringify(data, null, 2);
-    lastData = data;
+    const t0 = performance.now();
+    const resp = await fetch(BASE + path, { signal: AbortSignal.timeout(5000) });
+    const ms = Math.round(performance.now() - t0);
+    const data = await resp.json();
 
-    if (ok && Array.isArray(data)) {
-      renderTable(data);
-    } else if (ok && data && typeof data === 'object') {
-      renderSingle(data);
-    } else {
-      document.getElementById('table-area').innerHTML =
-        `<pre style="color:#dc2626">${JSON.stringify(data, null, 2)}</pre>`;
+    output.textContent = `${resp.status} ${resp.statusText}  |  ${ms}ms\n\n` + JSON.stringify(data, null, 2);
+
+    if (resp.ok && Array.isArray(data) && data.length > 0 && data[0].event_id !== undefined) {
+      renderEventTable(data, tableArea);
+    } else if (resp.ok && Array.isArray(data) && data.length > 0 && data[0].post_id !== undefined) {
+      renderPostTable(data, tableArea);
+    } else if (resp.ok && Array.isArray(data) && data.length > 0 && data[0].slug !== undefined) {
+      renderTagTable(data, tableArea);
+    } else if (resp.ok && Array.isArray(data) && data.length > 0 && data[0].district_name !== undefined) {
+      renderDistrictTable(data, tableArea);
     }
   } catch(e) {
-    setDot('table', 'err'); setDot('raw', 'err');
-    document.getElementById('raw-area').textContent = 'Connection failed: ' + e.message + '\n\nIs docker compose up and running?';
-    document.getElementById('table-area').innerHTML =
-      '<p style="color:#dc2626;padding:12px">Could not reach API. Run: docker compose up</p>';
+    output.textContent = 'Error: ' + e.message;
   }
 }
 
-function renderTable(rows) {
-  const area = document.getElementById('table-area');
-  if (!rows.length) {
-    area.innerHTML = '<p style="color:#9ca3af;padding:12px">No results.</p>';
-    document.getElementById('result-count').textContent = '0 results';
-    return;
-  }
-
-  // Stats row for events
-  if (rows[0].event_id !== undefined) {
-    const types = {};
-    rows.forEach(r => types[r.event_type] = (types[r.event_type]||0)+1);
-    const statsHtml = Object.entries(types).sort((a,b)=>b[1]-a[1])
-      .map(([t,n])=>`<div class="stat"><div class="n">${n}</div><div class="l">${t}</div></div>`).join('');
-    area.innerHTML = `<div class="stat-row" style="margin-bottom:12px">${statsHtml}</div>`;
-  } else {
-    area.innerHTML = '';
-  }
-
-  document.getElementById('result-count').textContent = `${rows.length} results`;
-
-  const keys = Object.keys(rows[0]).filter(k => k !== 'search_vector');
-  const table = document.createElement('table');
-  table.innerHTML = `<thead><tr>${keys.map(k=>`<th>${k}</th>`).join('')}</tr></thead>`;
-  const tbody = document.createElement('tbody');
-
-  rows.forEach(row => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = keys.map(k => {
-      const v = row[k];
-      if (k === 'tags' && Array.isArray(v)) {
-        return `<td>${v.map(t=>`<span class="tag">${t.slug}</span>`).join('')}</td>`;
-      }
-      if (k === 'event_type') {
-        return `<td><span class="event-type ${v}">${v}</span></td>`;
-      }
-      if (typeof v === 'boolean') {
-        return `<td>${v ? '✓' : '—'}</td>`;
-      }
-      return `<td title="${String(v??'')}">${v ?? '—'}</td>`;
-    }).join('');
-    tbody.appendChild(tr);
+function renderEventTable(rows, area) {
+  let html = '<table id="api-table"><thead><tr><th>Date</th><th>Title</th><th>Type</th><th>District</th><th>Tags</th></tr></thead><tbody>';
+  rows.forEach(r => {
+    const tags = Array.isArray(r.tags) ? r.tags.map(t => `<span class="tag-badge">${t.slug}</span>`).join('') : '';
+    const typeClass = 'type-badge type-' + (r.event_type || 'assembly');
+    html += `<tr><td>${r.event_date || ''}</td><td>${r.title || ''}</td><td><span class="${typeClass}">${r.event_type || ''}</span></td><td>${r.district_name || ''}</td><td>${tags}</td></tr>`;
   });
-
-  table.appendChild(tbody);
-  area.appendChild(table);
+  html += '</tbody></table>';
+  area.innerHTML = html;
 }
 
-function renderSingle(obj) {
-  const area = document.getElementById('table-area');
-  const rows = Object.entries(obj).filter(([k]) => k !== 'search_vector');
-  area.innerHTML = `<table><tbody>${rows.map(([k,v])=>{
-    let val = v;
-    if (k==='tags' && Array.isArray(v)) val = v.map(t=>`<span class="tag">${t.slug} (${t.label_de})</span>`).join(' ');
-    else if (typeof v === 'boolean') val = v ? '✓' : '—';
-    else val = String(v??'—');
-    return `<tr><th style="width:160px">${k}</th><td style="white-space:normal">${val}</td></tr>`;
-  }).join('')}</tbody></table>`;
+function renderPostTable(rows, area) {
+  let html = '<table id="api-table"><thead><tr><th>Title</th><th>Author</th><th>Published</th><th>Tags</th></tr></thead><tbody>';
+  rows.forEach(r => {
+    const tags = Array.isArray(r.tags) ? r.tags.map(t => `<span class="tag-badge">${t}</span>`).join('') : '';
+    html += `<tr><td>${r.title || ''}</td><td>${r.author_name || ''}</td><td>${r.published_at ? new Date(r.published_at).toLocaleDateString() : ''}</td><td>${tags}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  area.innerHTML = html;
 }
 
-function setDot(id, state) {
-  const dot = document.getElementById('dot-' + id);
-  dot.className = 'status-dot ' + state;
+function renderTagTable(rows, area) {
+  let html = '<table id="api-table"><thead><tr><th>Slug</th><th>Label (DE)</th><th>Label (EN)</th><th>Count</th></tr></thead><tbody>';
+  rows.forEach(r => {
+    html += `<tr><td><span class="tag-badge">${r.slug}</span></td><td>${r.label_de || ''}</td><td>${r.label_en || ''}</td><td>${r.event_count || 0}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  area.innerHTML = html;
 }
 
-async function liveFilter() {
-  const q = document.getElementById('tb-q').value.trim();
-  const type = document.getElementById('tb-type').value;
-  const tag = document.getElementById('tb-tag').value;
-  const params = new URLSearchParams({ upcoming: 'true', limit: '100' });
-  if (q) params.set('q', q);
-  if (type) params.set('event_type', type);
-  if (tag) params.set('tag', tag);
-  await display('/events?' + params.toString());
+function renderDistrictTable(rows, area) {
+  let html = '<table id="api-table"><thead><tr><th>District</th><th>Events</th></tr></thead><tbody>';
+  rows.forEach(r => {
+    html += `<tr><td>${r.district_name}</td><td>${r.event_count || 0}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  area.innerHTML = html;
 }
 
-// Check health on load
-async function checkHealth() {
-  try {
-    const { resp, data } = await callAPI('/health');
-    const badge = document.getElementById('api-badge');
-    const banner = document.getElementById('health-banner');
-    if (resp.ok) {
-      badge.textContent = 'API online'; badge.className = 'badge ok';
-      banner.className = 'ok';
-      banner.textContent = '✓ API is reachable at http://localhost:8000 — ready to test.';
-    } else {
-      throw new Error('not ok');
-    }
-  } catch {
-    const badge = document.getElementById('api-badge');
-    badge.textContent = 'API offline'; badge.className = 'badge err';
-    const banner = document.getElementById('health-banner');
-    banner.className = 'err';
-    banner.textContent = '✗ Cannot reach API. Make sure docker compose up is running.';
-  }
-}
-
-// Populate tag dropdown from API
-async function loadTags() {
-  try {
-    const { data } = await callAPI('/tags');
-    const sel = document.getElementById('tb-tag');
-    if (Array.isArray(data)) {
-      data.forEach(t => {
-        const opt = document.createElement('option');
-        opt.value = t.slug; opt.textContent = `${t.slug} (${t.event_count})`;
-        sel.appendChild(opt);
-      });
-    }
-  } catch {}
-}
-
-checkHealth();
-loadTags();
+// ── Init ──
+checkAPI();
 </script>
 </body>
 </html>
