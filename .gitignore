@@ -7,3 +7,6 @@ dbt_project/dbt_packages/
 .DS_Store
 *.pdf
 .monomind/
+.claude/
+.swarm/
+.mcp.json
