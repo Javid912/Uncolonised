@@ -1,0 +1,22 @@
+uncolonised:
+  target: prod
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      port: 5432
+      dbname: berlin_demos
+      user: berlin
+      password: berlin
+      schema: public
+      threads: 2
+
+    prod:
+      type: postgres
+      host: "{{ env_var('DB_HOST', 'db') }}"
+      port: 5432
+      dbname: berlin_demos
+      user: "{{ env_var('DB_USER', 'berlin') }}"
+      password: "{{ env_var('DB_PASSWORD', 'berlin') }}"
+      schema: public
+      threads: 4

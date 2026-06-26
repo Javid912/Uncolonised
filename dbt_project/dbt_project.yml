@@ -1,0 +1,40 @@
+name: uncolonised
+version: "1.0.0"
+config-version: 2
+
+profile: uncolonised
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  uncolonised:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: view
+    marts:
+      +materialized: table
+      fct_events:
+        +materialized: table
+      fct_posts:
+        +materialized: table
+      mart_events_api:
+        +materialized: table
+        +indexes:
+          - columns: ["event_date"]
+          - columns: ["district_name"]
+          - columns: ["event_type"]
+          - type: gin
+            columns: ["search_vector"]
+      mart_posts_api:
+        +materialized: table
+        +indexes:
+          - columns: ["published_at"]
+          - type: gin
+            columns: ["search_vector"]

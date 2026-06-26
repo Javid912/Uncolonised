@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: berlin_police
+    description: "Raw scraped data from Berlin Police Versammlungsbehorde"
+    tables:
+      - name: raw_assemblies
+        description: "Raw JSON dump from the Berlin Police API"
+
+  - name: uncolonised
+    description: "Uncolonised raw tables"
+    tables:
+      - name: raw_posts
+        description: "Raw blog posts written collectively"

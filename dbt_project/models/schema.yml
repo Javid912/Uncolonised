@@ -1,0 +1,72 @@
+version: 2
+
+models:
+  - name: stg_assemblies
+    description: "Cleaned and typed staging layer from raw_assemblies"
+    columns:
+      - name: raw_id
+        data_tests:
+          - not_null
+          - unique
+      - name: event_date
+        data_tests:
+          - not_null
+      - name: theme
+        data_tests:
+          - not_null
+
+  - name: stg_posts
+    description: "Cleaned staging layer from raw_posts"
+    columns:
+      - name: post_id
+        data_tests:
+          - not_null
+          - unique
+      - name: title
+        data_tests:
+          - not_null
+
+  - name: int_events_enriched
+    columns:
+      - name: raw_id
+        data_tests:
+          - not_null
+          - unique
+      - name: event_type
+        data_tests:
+          - accepted_values:
+              values: ['march', 'vigil', 'sit-in', 'strike', 'rally', 'cycling', 'assembly']
+
+  - name: fct_events
+    columns:
+      - name: event_id
+        data_tests:
+          - not_null
+          - unique
+      - name: event_date
+        data_tests:
+          - not_null
+
+  - name: fct_posts
+    columns:
+      - name: post_id
+        data_tests:
+          - not_null
+          - unique
+      - name: title
+        data_tests:
+          - not_null
+
+  - name: mart_events_api
+    columns:
+      - name: event_id
+        data_tests:
+          - not_null
+          - unique
+
+  - name: mart_posts_api
+    columns:
+      - name: post_id
+        data_tests:
+          - not_null
+          - unique

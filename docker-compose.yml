@@ -1,0 +1,73 @@
+services:
+
+  # ── 1. PostgreSQL ────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: berlin_demos
+      POSTGRES_USER: berlin
+      POSTGRES_PASSWORD: berlin
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U berlin -d berlin_demos"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── 2. FastAPI ───────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://berlin:berlin@db:5432/berlin_demos
+      ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:8080"
+      AI_PROVIDER: "none"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api:/app/api
+    command: >
+      uvicorn api.main:app
+        --host 0.0.0.0
+        --port 8000
+        --reload
+        --log-level info
+
+  # ── 3. Scrapers + dbt (run once then exit) ─────────────────
+  pipeline:
+    build:
+      context: .
+      dockerfile: scraper/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://berlin:berlin@db:5432/berlin_demos
+      DB_USER: berlin
+      DB_PASSWORD: berlin
+    volumes:
+      - ./scraper:/app/scraper
+      - ./dbt_project:/app/dbt_project
+    command: /app/scripts/pipeline_run.sh
+
+  # ── 4. Test UI ───────────────────────────────────────────────
+  ui:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./ui:/usr/share/nginx/html:ro
+    ports:
+      - "8080:80"
+
+volumes:
+  pg_data:

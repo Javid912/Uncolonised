@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Berlin Demos — Dev Test UI</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; font-size: 14px; background: #f5f5f4; color: #1c1c1a; }
+  header { background: #1c1c1a; color: #fff; padding: 12px 20px; display: flex; align-items: center; gap: 12px; }
+  header h1 { font-size: 15px; font-weight: 500; }
+  .badge { background: #3b82f6; color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 20px; }
+  .badge.ok { background: #16a34a; }
+  .badge.err { background: #dc2626; }
+  .layout { display: grid; grid-template-columns: 260px 1fr; height: calc(100vh - 44px); }
+  nav { background: #fff; border-right: 1px solid #e5e5e3; overflow-y: auto; padding: 12px 0; }
+  nav section { padding: 0 12px 16px; }
+  nav h2 { font-size: 11px; font-weight: 600; color: #6b7280; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 8px; padding-top: 8px; }
+  .test-btn { display: block; width: 100%; text-align: left; padding: 8px 10px; border-radius: 6px; border: none; background: transparent; cursor: pointer; font-size: 13px; color: #374151; transition: background .1s; }
+  .test-btn:hover { background: #f3f4f6; }
+  .test-btn.active { background: #eff6ff; color: #1d4ed8; font-weight: 500; }
+  .test-btn .url { display: block; font-size: 11px; color: #9ca3af; margin-top: 2px; font-family: monospace; }
+  main { display: flex; flex-direction: column; overflow: hidden; }
+  .toolbar { padding: 10px 16px; border-bottom: 1px solid #e5e5e3; background: #fff; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .toolbar label { font-size: 12px; color: #6b7280; }
+  .toolbar input, .toolbar select { border: 1px solid #d1d5db; border-radius: 5px; padding: 4px 8px; font-size: 13px; }
+  .toolbar input { width: 180px; }
+  button.run { background: #1d4ed8; color: #fff; border: none; border-radius: 5px; padding: 6px 14px; font-size: 13px; cursor: pointer; }
+  button.run:hover { background: #1e40af; }
+  .output { display: grid; grid-template-rows: 1fr 1fr; flex: 1; overflow: hidden; }
+  .pane { overflow: auto; padding: 12px 16px; }
+  .pane-header { font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .pane:first-child { border-bottom: 1px solid #e5e5e3; }
+  pre { background: #1c1c1a; color: #d4d4d4; padding: 12px; border-radius: 6px; font-size: 12px; white-space: pre-wrap; word-break: break-all; line-height: 1.6; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: #f9fafb; padding: 6px 10px; text-align: left; font-weight: 500; border-bottom: 1px solid #e5e5e3; position: sticky; top: 0; }
+  td { padding: 6px 10px; border-bottom: 1px solid #f3f4f6; vertical-align: top; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  tr:hover td { background: #f9fafb; }
+  .tag { display: inline-block; background: #dbeafe; color: #1e40af; font-size: 10px; padding: 1px 6px; border-radius: 20px; margin: 1px; }
+  .event-type { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 20px; }
+  .event-type.march   { background: #fef3c7; color: #92400e; }
+  .event-type.vigil   { background: #dcfce7; color: #14532d; }
+  .event-type.rally   { background: #fce7f3; color: #831843; }
+  .event-type.sit-in  { background: #ede9fe; color: #4c1d95; }
+  .event-type.strike  { background: #fee2e2; color: #7f1d1d; }
+  .event-type.assembly { background: #f3f4f6; color: #374151; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .status-dot.ok  { background: #16a34a; }
+  .status-dot.err { background: #dc2626; }
+  .status-dot.pending { background: #d1d5db; }
+  .stat-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .stat { background: #f9fafb; border: 1px solid #e5e5e3; border-radius: 6px; padding: 10px 14px; }
+  .stat .n { font-size: 22px; font-weight: 600; color: #1d4ed8; }
+  .stat .l { font-size: 11px; color: #6b7280; margin-top: 2px; }
+  #health-banner { padding: 6px 16px; font-size: 12px; display: none; }
+  #health-banner.ok  { background: #dcfce7; color: #14532d; display: block; }
+  #health-banner.err { background: #fee2e2; color: #7f1d1d; display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Berlin Demos — Dev Test UI</h1>
+  <span class="badge" id="api-badge">checking API…</span>
+  <span style="font-size:12px;color:#9ca3af;margin-left:auto">API: http://localhost:8000</span>
+</header>
+
+<div id="health-banner"></div>
+
+<div class="layout">
+<nav>
+  <section>
+    <h2>Health</h2>
+    <button class="test-btn" onclick="runTest('health')">
+      Health check
+      <span class="url">GET /health</span>
+    </button>
+  </section>
+  <section>
+    <h2>Events</h2>
+    <button class="test-btn" onclick="runTest('events_upcoming')">
+      Upcoming events
+      <span class="url">GET /events</span>
+    </button>
+    <button class="test-btn" onclick="runTest('events_marches')">
+      Marches only
+      <span class="url">GET /events?event_type=march</span>
+    </button>
+    <button class="test-btn" onclick="runTest('events_vigils')">
+      Vigils only
+      <span class="url">GET /events?event_type=vigil</span>
+    </button>
+    <button class="test-btn" onclick="runTest('events_mitte')">
+      District: Mitte
+      <span class="url">GET /events?district=Mitte</span>
+    </button>
+    <button class="test-btn" onclick="runTest('events_tag_climate')">
+      Tag: climate
+      <span class="url">GET /events?tag=climate</span>
+    </button>
+    <button class="test-btn" onclick="runTest('events_tag_housing')">
+      Tag: housing
+      <span class="url">GET /events?tag=housing</span>
+    </button>
+    <button class="test-btn" onclick="runTest('events_search')">
+      Search: "Miete"
+      <span class="url">GET /events?q=Miete</span>
+    </button>
+    <button class="test-btn" onclick="runTest('events_first')">
+      Single event (id=1)
+      <span class="url">GET /events/1</span>
+    </button>
+  </section>
+  <section>
+    <h2>Lookups</h2>
+    <button class="test-btn" onclick="runTest('tags')">
+      All tags + counts
+      <span class="url">GET /tags</span>
+    </button>
+    <button class="test-btn" onclick="runTest('districts')">
+      All districts + counts
+      <span class="url">GET /districts</span>
+    </button>
+  </section>
+  <section>
+    <h2>Edge cases</h2>
+    <button class="test-btn" onclick="runTest('events_404')">
+      404 — event not found
+      <span class="url">GET /events/999999</span>
+    </button>
+    <button class="test-btn" onclick="runTest('events_bad_limit')">
+      Bad limit param
+      <span class="url">GET /events?limit=999</span>
+    </button>
+    <button class="test-btn" onclick="runTest('events_all_filters')">
+      Multiple filters
+      <span class="url">GET /events?tag=climate&upcoming=true</span>
+    </button>
+  </section>
+  <section>
+    <h2>Custom</h2>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <input id="custom-path" placeholder="/events?q=Demo" style="border:1px solid #d1d5db;border-radius:5px;padding:5px 8px;font-size:12px;font-family:monospace">
+      <button class="test-btn" style="background:#eff6ff;color:#1d4ed8" onclick="runCustom()">Run custom request</button>
+    </div>
+  </section>
+</nav>
+
+<main>
+  <div class="toolbar">
+    <label>Filter:</label>
+    <input id="tb-q" placeholder="full-text search…" oninput="liveFilter()">
+    <label>Type:</label>
+    <select id="tb-type" onchange="liveFilter()">
+      <option value="">all types</option>
+      <option>march</option><option>vigil</option><option>rally</option>
+      <option>sit-in</option><option>strike</option><option>assembly</option>
+    </select>
+    <label>Tag:</label>
+    <select id="tb-tag" onchange="liveFilter()">
+      <option value="">all tags</option>
+    </select>
+    <button class="run" onclick="liveFilter()">Reload</button>
+    <span id="result-count" style="font-size:12px;color:#6b7280;margin-left:auto"></span>
+  </div>
+
+  <div class="output">
+    <div class="pane" id="pane-table">
+      <div class="pane-header">
+        <span class="status-dot pending" id="dot-table"></span>
+        Results
+      </div>
+      <div id="table-area"><p style="color:#9ca3af">Select a test from the left panel.</p></div>
+    </div>
+    <div class="pane" id="pane-raw">
+      <div class="pane-header">
+        <span class="status-dot pending" id="dot-raw"></span>
+        Raw response
+        <span id="raw-meta" style="font-weight:400;color:#9ca3af"></span>
+      </div>
+      <pre id="raw-area">—</pre>
+    </div>
+  </div>
+</main>
+</div>
+
+<script>
+const BASE = 'http://localhost:8000';
+let lastData = null;
+
+const TESTS = {
+  health:           '/health',
+  events_upcoming:  '/events?upcoming=true&limit=50',
+  events_marches:   '/events?event_type=march&limit=50',
+  events_vigils:    '/events?event_type=vigil&limit=50',
+  events_mitte:     '/events?district=Mitte&limit=50',
+  events_tag_climate: '/events?tag=climate&limit=50',
+  events_tag_housing: '/events?tag=housing&limit=50',
+  events_search:    '/events?q=Miete&limit=50',
+  events_first:     '/events/1',
+  tags:             '/tags',
+  districts:        '/districts',
+  events_404:       '/events/999999',
+  events_bad_limit: '/events?limit=999',
+  events_all_filters: '/events?tag=climate&upcoming=true&limit=50',
+};
+
+async function callAPI(path) {
+  const t0 = performance.now();
+  const resp = await fetch(BASE + path);
+  const ms = Math.round(performance.now() - t0);
+  const data = await resp.json().catch(() => null);
+  return { resp, data, ms };
+}
+
+async function runTest(key) {
+  document.querySelectorAll('.test-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  await display(TESTS[key]);
+}
+
+async function runCustom() {
+  const path = document.getElementById('custom-path').value.trim();
+  if (!path) return;
+  await display(path);
+}
+
+async function display(path) {
+  setDot('table', 'pending'); setDot('raw', 'pending');
+  document.getElementById('raw-area').textContent = 'Loading…';
+  document.getElementById('table-area').innerHTML = '';
+
+  try {
+    const { resp, data, ms } = await callAPI(path);
+    const ok = resp.ok;
+    setDot('table', ok ? 'ok' : 'err');
+    setDot('raw', ok ? 'ok' : 'err');
+    document.getElementById('raw-meta').textContent =
+      `${resp.status} ${resp.statusText} · ${ms}ms`;
+    document.getElementById('raw-area').textContent =
+      JSON.stringify(data, null, 2);
+    lastData = data;
+
+    if (ok && Array.isArray(data)) {
+      renderTable(data);
+    } else if (ok && data && typeof data === 'object') {
+      renderSingle(data);
+    } else {
+      document.getElementById('table-area').innerHTML =
+        `<pre style="color:#dc2626">${JSON.stringify(data, null, 2)}</pre>`;
+    }
+  } catch(e) {
+    setDot('table', 'err'); setDot('raw', 'err');
+    document.getElementById('raw-area').textContent = 'Connection failed: ' + e.message + '\n\nIs docker compose up and running?';
+    document.getElementById('table-area').innerHTML =
+      '<p style="color:#dc2626;padding:12px">Could not reach API. Run: docker compose up</p>';
+  }
+}
+
+function renderTable(rows) {
+  const area = document.getElementById('table-area');
+  if (!rows.length) {
+    area.innerHTML = '<p style="color:#9ca3af;padding:12px">No results.</p>';
+    document.getElementById('result-count').textContent = '0 results';
+    return;
+  }
+
+  // Stats row for events
+  if (rows[0].event_id !== undefined) {
+    const types = {};
+    rows.forEach(r => types[r.event_type] = (types[r.event_type]||0)+1);
+    const statsHtml = Object.entries(types).sort((a,b)=>b[1]-a[1])
+      .map(([t,n])=>`<div class="stat"><div class="n">${n}</div><div class="l">${t}</div></div>`).join('');
+    area.innerHTML = `<div class="stat-row" style="margin-bottom:12px">${statsHtml}</div>`;
+  } else {
+    area.innerHTML = '';
+  }
+
+  document.getElementById('result-count').textContent = `${rows.length} results`;
+
+  const keys = Object.keys(rows[0]).filter(k => k !== 'search_vector');
+  const table = document.createElement('table');
+  table.innerHTML = `<thead><tr>${keys.map(k=>`<th>${k}</th>`).join('')}</tr></thead>`;
+  const tbody = document.createElement('tbody');
+
+  rows.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = keys.map(k => {
+      const v = row[k];
+      if (k === 'tags' && Array.isArray(v)) {
+        return `<td>${v.map(t=>`<span class="tag">${t.slug}</span>`).join('')}</td>`;
+      }
+      if (k === 'event_type') {
+        return `<td><span class="event-type ${v}">${v}</span></td>`;
+      }
+      if (typeof v === 'boolean') {
+        return `<td>${v ? '✓' : '—'}</td>`;
+      }
+      return `<td title="${String(v??'')}">${v ?? '—'}</td>`;
+    }).join('');
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  area.appendChild(table);
+}
+
+function renderSingle(obj) {
+  const area = document.getElementById('table-area');
+  const rows = Object.entries(obj).filter(([k]) => k !== 'search_vector');
+  area.innerHTML = `<table><tbody>${rows.map(([k,v])=>{
+    let val = v;
+    if (k==='tags' && Array.isArray(v)) val = v.map(t=>`<span class="tag">${t.slug} (${t.label_de})</span>`).join(' ');
+    else if (typeof v === 'boolean') val = v ? '✓' : '—';
+    else val = String(v??'—');
+    return `<tr><th style="width:160px">${k}</th><td style="white-space:normal">${val}</td></tr>`;
+  }).join('')}</tbody></table>`;
+}
+
+function setDot(id, state) {
+  const dot = document.getElementById('dot-' + id);
+  dot.className = 'status-dot ' + state;
+}
+
+async function liveFilter() {
+  const q = document.getElementById('tb-q').value.trim();
+  const type = document.getElementById('tb-type').value;
+  const tag = document.getElementById('tb-tag').value;
+  const params = new URLSearchParams({ upcoming: 'true', limit: '100' });
+  if (q) params.set('q', q);
+  if (type) params.set('event_type', type);
+  if (tag) params.set('tag', tag);
+  await display('/events?' + params.toString());
+}
+
+// Check health on load
+async function checkHealth() {
+  try {
+    const { resp, data } = await callAPI('/health');
+    const badge = document.getElementById('api-badge');
+    const banner = document.getElementById('health-banner');
+    if (resp.ok) {
+      badge.textContent = 'API online'; badge.className = 'badge ok';
+      banner.className = 'ok';
+      banner.textContent = '✓ API is reachable at http://localhost:8000 — ready to test.';
+    } else {
+      throw new Error('not ok');
+    }
+  } catch {
+    const badge = document.getElementById('api-badge');
+    badge.textContent = 'API offline'; badge.className = 'badge err';
+    const banner = document.getElementById('health-banner');
+    banner.className = 'err';
+    banner.textContent = '✗ Cannot reach API. Make sure docker compose up is running.';
+  }
+}
+
+// Populate tag dropdown from API
+async function loadTags() {
+  try {
+    const { data } = await callAPI('/tags');
+    const sel = document.getElementById('tb-tag');
+    if (Array.isArray(data)) {
+      data.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.slug; opt.textContent = `${t.slug} (${t.event_count})`;
+        sel.appendChild(opt);
+      });
+    }
+  } catch {}
+}
+
+checkHealth();
+loadTags();
+</script>
+</body>
+</html>
