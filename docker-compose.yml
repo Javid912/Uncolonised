@@ -31,7 +31,8 @@ services:
     environment:
       DATABASE_URL: postgresql://berlin:berlin@db:5432/berlin_demos
       ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:8080"
-      AI_PROVIDER: "none"
+      ADMIN_API_KEY: "${ADMIN_API_KEY:-changeme}"
+      AI_PROVIDER: "${AI_PROVIDER:-none}"
     ports:
       - "8000:8000"
     volumes:
@@ -60,7 +61,25 @@ services:
       - ./dbt_project:/app/dbt_project
     command: /app/scripts/pipeline_run.sh
 
-  # ── 4. Test UI ───────────────────────────────────────────────
+  # ── 4. Telegram Bot ──────────────────────────────────────────
+  bot:
+    build:
+      context: .
+      dockerfile: bot/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://berlin:berlin@db:5432/berlin_demos
+      TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN:-}"
+      ADMIN_API_KEY: "${ADMIN_API_KEY:-changeme}"
+      API_BASE_URL: "http://api:8000"
+      ALLOWED_USER_IDS: "${ALLOWED_USER_IDS:-}"
+    volumes:
+      - ./bot:/app/bot
+
+  # ── 5. Internal Dashboard ────────────────────────────────────
   ui:
     image: nginx:alpine
     restart: unless-stopped

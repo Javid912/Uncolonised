@@ -10,7 +10,7 @@ cleaned as (
         coalesce(excerpt, left(body_md, 200)) as excerpt,
         author_name,
         slug,
-        published,
+        status,
         published_at,
         tags,
         created_at,

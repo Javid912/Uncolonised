@@ -11,4 +11,9 @@ sources:
     description: "Uncolonised raw tables"
     tables:
       - name: raw_posts
-        description: "Raw blog posts written collectively"
+        description: "Raw blog posts with editorial workflow (draft -> published)"
+        columns:
+          - name: id
+            description: "Primary key"
+          - name: status
+            description: "draft | in_review | approved | published | rejected"

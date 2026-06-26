@@ -110,7 +110,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS raw_assemblies_source_id_datum_uq
 CREATE INDEX IF NOT EXISTS raw_assemblies_scraped_at_idx
     ON raw_assemblies (scraped_at);
 
--- ── Blog posts table ──────────────────────────────────────────
+-- ── Blog posts table (internal only — no public writes) ──────
 CREATE TABLE IF NOT EXISTS raw_posts (
     id              BIGSERIAL PRIMARY KEY,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -120,10 +120,18 @@ CREATE TABLE IF NOT EXISTS raw_posts (
     excerpt         TEXT,
     author_name     TEXT NOT NULL,
     slug            TEXT UNIQUE NOT NULL,
-    published       BOOLEAN NOT NULL DEFAULT false,
+    status          TEXT NOT NULL DEFAULT 'draft'
+                    CHECK (status IN ('draft', 'in_review', 'approved', 'published', 'rejected')),
     published_at    TIMESTAMPTZ,
-    tags            TEXT[] DEFAULT '{}'
+    tags            TEXT[] DEFAULT '{}',
+    submission_id   BIGINT REFERENCES submissions(id),
+    reviewed_by     TEXT,
+    reviewed_at     TIMESTAMPTZ,
+    editor_notes    TEXT
 );
+
+CREATE INDEX IF NOT EXISTS raw_posts_status_idx
+    ON raw_posts (status);
 
 CREATE INDEX IF NOT EXISTS raw_posts_published_at_idx
     ON raw_posts (published_at DESC);
@@ -131,21 +139,52 @@ CREATE INDEX IF NOT EXISTS raw_posts_published_at_idx
 CREATE INDEX IF NOT EXISTS raw_posts_tags_idx
     ON raw_posts USING GIN (tags);
 
--- ── User submissions table (event tips / article ideas) ──────
+-- ── Curated submissions (Telegram → agents → you) ───────────
 CREATE TABLE IF NOT EXISTS submissions (
     id              BIGSERIAL PRIMARY KEY,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     submission_type TEXT NOT NULL CHECK (submission_type IN ('event', 'post', 'tip')),
     title           TEXT NOT NULL,
+    body_md         TEXT,
     description     TEXT,
+    author_name     TEXT,
     contact_name    TEXT,
     contact_email   TEXT,
+    telegram_uid    BIGINT,
+    telegram_username TEXT,
     event_date      DATE,
     event_location  TEXT,
     tags            TEXT[] DEFAULT '{}',
     status          TEXT NOT NULL DEFAULT 'pending'
-                    CHECK (status IN ('pending', 'approved', 'rejected', 'needs_review')),
+                    CHECK (status IN ('pending', 'agent_review', 'needs_revision', 'approved', 'rejected')),
     reviewed_by     TEXT,
     reviewed_at     TIMESTAMPTZ,
-    notes           TEXT
+    agent_notes     TEXT,
+    admin_notes     TEXT
+);
+
+CREATE INDEX IF NOT EXISTS submissions_status_idx
+    ON submissions (status);
+
+CREATE INDEX IF NOT EXISTS submissions_telegram_uid_idx
+    ON submissions (telegram_uid);
+
+-- ── Admin API keys (for internal services) ───────────────────
+CREATE TABLE IF NOT EXISTS admin_api_keys (
+    id              BIGSERIAL PRIMARY KEY,
+    key_hash        TEXT NOT NULL UNIQUE,
+    label           TEXT NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    last_used_at    TIMESTAMPTZ,
+    is_active       BOOLEAN NOT NULL DEFAULT true
+);
+
+-- ── Agent review log ─────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS review_log (
+    id              BIGSERIAL PRIMARY KEY,
+    submission_id   BIGINT REFERENCES submissions(id),
+    agent_name      TEXT NOT NULL,
+    action          TEXT NOT NULL CHECK (action IN ('review', 'edit', 'approve', 'reject', 'request_revision')),
+    notes           TEXT,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );

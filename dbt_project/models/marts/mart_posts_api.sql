@@ -9,6 +9,7 @@ select
     excerpt,
     author_name,
     slug,
+    status,
     published_at,
     tags,
     search_vector,

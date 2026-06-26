@@ -1,12 +1,15 @@
+import hashlib
 import json
 import os
+import secrets
 from contextlib import asynccontextmanager
 from datetime import date, datetime
 from typing import Any, Optional
 
 import asyncpg
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings
 
@@ -15,6 +18,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     database_url: str
     allowed_origins: str = "*"
+    admin_api_key: str = ""
     ai_provider: str = "none"
     ai_model: str = "gemma3:12b"
     ai_endpoint: str = "http://localhost:11434/v1/chat/completions"
@@ -26,9 +30,30 @@ class Settings(BaseSettings):
 
 settings = Settings()
 pool: asyncpg.Pool = None
+security = HTTPBearer(auto_error=False)
 
 
-# ── Pydantic models ────────────────────────────────────────────
+# ── Auth ───────────────────────────────────────────────────────
+async def verify_admin_key(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    x_api_key: Optional[str] = Header(None),
+):
+    provided = ""
+    if credentials:
+        provided = credentials.credentials
+    elif x_api_key:
+        provided = x_api_key
+
+    if not provided or not settings.admin_api_key:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    if not secrets.compare_digest(provided, settings.admin_api_key):
+        raise HTTPException(status_code=401, detail="Invalid API key")
+
+    return provided
+
+
+# ── Pydantic models (public read) ──────────────────────────────
 class EventSummary(BaseModel):
     event_id: int
     source_id: int
@@ -67,26 +92,6 @@ class PostDetail(PostSummary):
     updated_at: datetime
 
 
-class PostCreate(BaseModel):
-    title: str
-    body_md: str
-    author_name: str
-    slug: str
-    excerpt: Optional[str] = None
-    tags: list[str] = []
-
-
-class SubmissionCreate(BaseModel):
-    submission_type: str
-    title: str
-    description: Optional[str] = None
-    contact_name: Optional[str] = None
-    contact_email: Optional[str] = None
-    event_date: Optional[date] = None
-    event_location: Optional[str] = None
-    tags: list[str] = []
-
-
 class TagSummary(BaseModel):
     slug: str
     label_de: str
@@ -111,6 +116,50 @@ class AITagRequest(BaseModel):
 class AITagResponse(BaseModel):
     tags: list[str]
     summary: Optional[str]
+
+
+# ── Pydantic models (admin) ────────────────────────────────────
+class SubmissionOut(BaseModel):
+    id: int
+    created_at: datetime
+    submission_type: str
+    title: str
+    body_md: Optional[str]
+    description: Optional[str]
+    author_name: Optional[str]
+    contact_name: Optional[str]
+    contact_email: Optional[str]
+    telegram_uid: Optional[int]
+    telegram_username: Optional[str]
+    tags: list[str]
+    status: str
+    agent_notes: Optional[str]
+    admin_notes: Optional[str]
+
+
+class AdminPostOut(BaseModel):
+    id: int
+    created_at: datetime
+    title: str
+    body_md: str
+    excerpt: Optional[str]
+    author_name: str
+    slug: str
+    status: str
+    published_at: Optional[datetime]
+    tags: list[str]
+    submission_id: Optional[int]
+    editor_notes: Optional[str]
+
+
+class DashboardStats(BaseModel):
+    total_events: int
+    upcoming_events: int
+    total_posts: int
+    published_posts: int
+    pending_submissions: int
+    total_scrapers: int
+    api_status: str
 
 
 # ── Helpers ────────────────────────────────────────────────────
@@ -150,9 +199,7 @@ async def translate_query(q: str) -> str:
 
 async def ai_tag(text: str) -> AITagResponse:
     if settings.ai_provider == "none":
-        return AITagResponse(
-            tags=[], summary=None
-        )
+        return AITagResponse(tags=[], summary=None)
     try:
         import httpx
 
@@ -184,7 +231,6 @@ Respond ONLY with JSON: {{"tags": [...], "summary": "..."}}"""
             data = resp.json()
             content = data["choices"][0]["message"]["content"]
 
-        # Extract JSON from response
         content = content.strip()
         if content.startswith("```"):
             content = content.split("\n", 1)[1].rsplit("\n", 1)[0]
@@ -193,7 +239,7 @@ Respond ONLY with JSON: {{"tags": [...], "summary": "..."}}"""
             tags=result.get("tags", []),
             summary=result.get("summary"),
         )
-    except Exception as e:
+    except Exception:
         return AITagResponse(tags=[], summary=None)
 
 
@@ -209,7 +255,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Uncolonised API",
     description="Anti-colonial / anti-imperialist events & blog platform for Berlin",
-    version="1.0.0",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
@@ -221,10 +267,14 @@ app.add_middleware(
 )
 
 
+# ═══════════════════════════════════════════════════════════════
+# PUBLIC READ ENDPOINTS (no auth required)
+# ═══════════════════════════════════════════════════════════════
+
 # ── Health ─────────────────────────────────────────────────────
 @app.get("/health")
 async def health():
-    return {"status": "ok", "project": "Uncolonised"}
+    return {"status": "ok", "project": "Uncolonised", "version": "2.0.0"}
 
 
 # ── Events ─────────────────────────────────────────────────────
@@ -327,7 +377,7 @@ async def get_event(event_id: int):
     return row_to_dict(row)
 
 
-# ── Posts ──────────────────────────────────────────────────────
+# ── Posts (published only — public) ────────────────────────────
 @app.get("/posts", response_model=list[PostSummary])
 async def list_posts(
     tag: Optional[str] = Query(None),
@@ -336,7 +386,7 @@ async def list_posts(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
 ):
-    conditions = []
+    conditions = ["status = 'published'"]
     params = []
     i = 1
 
@@ -356,7 +406,7 @@ async def list_posts(
         params.append(expanded_q)
         i += 1
 
-    where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+    where = "WHERE " + " AND ".join(conditions)
 
     if q:
         expanded_q_rank = await translate_query(q)
@@ -393,53 +443,12 @@ async def get_post(post_id: int):
             SELECT post_id, title, body_md, excerpt, author_name,
                    slug, published_at, tags, created_at, updated_at
             FROM mart_posts_api
-            WHERE post_id = $1
+            WHERE post_id = $1 AND status = 'published'
             """,
             post_id,
         )
     if not row:
         raise HTTPException(status_code=404, detail="Post not found")
-    return dict(row)
-
-
-@app.post("/posts", response_model=PostDetail, status_code=201)
-async def create_post(post: PostCreate):
-    async with pool.acquire() as conn:
-        row = await conn.fetchrow(
-            """
-            INSERT INTO raw_posts (title, body_md, excerpt, author_name, slug, tags, published, published_at)
-            VALUES ($1, $2, $3, $4, $5, $6, true, now())
-            RETURNING id, title, body_md, excerpt, author_name, slug, published_at, tags, created_at, updated_at
-            """,
-            post.title,
-            post.body_md,
-            post.excerpt or post.body_md[:200],
-            post.author_name,
-            post.slug,
-            post.tags,
-        )
-    return dict(row)
-
-
-# ── Submissions ────────────────────────────────────────────────
-@app.post("/submit", status_code=201)
-async def submit(submission: SubmissionCreate):
-    async with pool.acquire() as conn:
-        row = await conn.fetchrow(
-            """
-            INSERT INTO submissions (submission_type, title, description, contact_name, contact_email, event_date, event_location, tags)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            RETURNING id, submission_type, title, status, created_at
-            """,
-            submission.submission_type,
-            submission.title,
-            submission.description,
-            submission.contact_name,
-            submission.contact_email,
-            submission.event_date,
-            submission.event_location,
-            submission.tags,
-        )
     return dict(row)
 
 
@@ -467,6 +476,7 @@ async def unified_search(
                ts_rank(search_vector, plainto_tsquery('german_unaccent', $1)) as rank
         FROM mart_posts_api
         WHERE search_vector @@ plainto_tsquery('german_unaccent', $1)
+          AND status = 'published'
         ORDER BY rank DESC, date ASC NULLS LAST
         LIMIT $2 OFFSET $3
     """
@@ -515,14 +525,331 @@ async def list_districts():
     return [dict(r) for r in rows]
 
 
-# ── AI Director ────────────────────────────────────────────────
-@app.post("/ai/suggest-tags", response_model=AITagResponse)
-async def suggest_tags(request: AITagRequest):
+# ═══════════════════════════════════════════════════════════════
+# ADMIN ENDPOINTS (API key required)
+# ═══════════════════════════════════════════════════════════════
+
+# ── Dashboard stats ────────────────────────────────────────────
+@app.get("/admin/stats", response_model=DashboardStats)
+async def admin_stats(_=Depends(verify_admin_key)):
+    async with pool.acquire() as conn:
+        total_events = await conn.fetchval("SELECT COUNT(*) FROM mart_events_api")
+        upcoming = await conn.fetchval(
+            "SELECT COUNT(*) FROM mart_events_api WHERE event_date >= CURRENT_DATE"
+        )
+        total_posts = await conn.fetchval("SELECT COUNT(*) FROM raw_posts")
+        published = await conn.fetchval(
+            "SELECT COUNT(*) FROM raw_posts WHERE status = 'published'"
+        )
+        pending = await conn.fetchval(
+            "SELECT COUNT(*) FROM submissions WHERE status = 'pending'"
+        )
+    return DashboardStats(
+        total_events=total_events or 0,
+        upcoming_events=upcoming or 0,
+        total_posts=total_posts or 0,
+        published_posts=published or 0,
+        pending_submissions=pending or 0,
+        total_scrapers=1,
+        api_status="ok",
+    )
+
+
+# ── Submissions management ─────────────────────────────────────
+@app.get("/admin/submissions", response_model=list[SubmissionOut])
+async def list_submissions(
+    status: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    _=Depends(verify_admin_key),
+):
+    where = ""
+    params = []
+    if status:
+        where = "WHERE status = $1"
+        params.append(status)
+
+    sql = f"""
+        SELECT id, created_at, submission_type, title, body_md, description,
+               author_name, contact_name, contact_email,
+               telegram_uid, telegram_username,
+               tags, status, agent_notes, admin_notes
+        FROM submissions
+        {where}
+        ORDER BY created_at DESC
+        LIMIT ${2 if status else 1} OFFSET ${3 if status else 2}
+    """
+    params.extend([limit, offset])
+
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(sql, *params)
+    results = []
+    for r in rows:
+        d = dict(r)
+        if isinstance(d.get("tags"), str):
+            d["tags"] = json.loads(d["tags"])
+        results.append(SubmissionOut(**d))
+    return results
+
+
+@app.post("/admin/submissions", status_code=201)
+async def create_submission(
+    submission_type: str,
+    title: str,
+    body_md: Optional[str] = None,
+    description: Optional[str] = None,
+    author_name: Optional[str] = None,
+    contact_name: Optional[str] = None,
+    contact_email: Optional[str] = None,
+    telegram_uid: Optional[int] = None,
+    telegram_username: Optional[str] = None,
+    tags: Optional[str] = None,
+    _=Depends(verify_admin_key),
+):
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            """
+            INSERT INTO submissions
+                (submission_type, title, body_md, description, author_name,
+                 contact_name, contact_email, telegram_uid, telegram_username, tags,
+                 status)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'pending')
+            RETURNING id, submission_type, title, status, created_at
+            """,
+            submission_type,
+            title,
+            body_md,
+            description,
+            author_name,
+            contact_name,
+            contact_email,
+            telegram_uid,
+            telegram_username,
+            [t.strip() for t in tags.split(",")] if tags else [],
+        )
+    return dict(row)
+
+
+@app.post("/admin/submissions/{submission_id}/approve", status_code=201)
+async def approve_submission(
+    submission_id: int,
+    editor_notes: Optional[str] = None,
+    _=Depends(verify_admin_key),
+):
+    async with pool.acquire() as conn:
+        sub = await conn.fetchrow(
+            "SELECT * FROM submissions WHERE id = $1", submission_id
+        )
+        if not sub:
+            raise HTTPException(status_code=404, detail="Submission not found")
+        if sub["status"] not in ("pending", "agent_review", "needs_revision"):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot approve submission in status '{sub['status']}'",
+            )
+
+        base_slug = sub["title"].lower().replace(" ", "-")[:80]
+        base_slug = "".join(c for c in base_slug if c.isalnum() or c == "-") or "untitled"
+        slug = base_slug
+
+        collision = await conn.fetchval(
+            "SELECT 1 FROM raw_posts WHERE slug = $1", slug
+        )
+        suffix = 2
+        while collision:
+            slug = f"{base_slug}-{suffix}"
+            collision = await conn.fetchval(
+                "SELECT 1 FROM raw_posts WHERE slug = $1", slug
+            )
+            suffix += 1
+
+        post = await conn.fetchrow(
+            """
+            INSERT INTO raw_posts
+                (title, body_md, excerpt, author_name, slug, tags,
+                 status, submission_id, editor_notes)
+            VALUES ($1, $2, $3, $4, $5, $6, 'draft', $7, $8)
+            RETURNING id, title, status, created_at
+            """,
+            sub["title"],
+            sub["body_md"] or "",
+            sub["description"] or sub["title"],
+            sub["author_name"] or sub["contact_name"] or "Anonymous",
+            slug,
+            sub["tags"],
+            submission_id,
+            editor_notes,
+        )
+
+        await conn.execute(
+            "UPDATE submissions SET status = 'approved', admin_notes = $2 WHERE id = $1",
+            submission_id,
+            editor_notes,
+        )
+
+    return {"submission_id": submission_id, "post_id": post["id"], "status": "draft"}
+
+
+@app.post("/admin/submissions/{submission_id}/reject")
+async def reject_submission(
+    submission_id: int,
+    reason: Optional[str] = None,
+    _=Depends(verify_admin_key),
+):
+    async with pool.acquire() as conn:
+        sub = await conn.fetchrow(
+            "SELECT * FROM submissions WHERE id = $1", submission_id
+        )
+        if not sub:
+            raise HTTPException(status_code=404, detail="Submission not found")
+
+        await conn.execute(
+            "UPDATE submissions SET status = 'rejected', admin_notes = $2 WHERE id = $1",
+            submission_id,
+            reason,
+        )
+
+    return {"submission_id": submission_id, "status": "rejected"}
+
+
+@app.post("/admin/submissions/{submission_id}/agent-review")
+async def agent_review_submission(
+    submission_id: int,
+    _=Depends(verify_admin_key),
+):
+    async with pool.acquire() as conn:
+        sub = await conn.fetchrow(
+            "SELECT * FROM submissions WHERE id = $1", submission_id
+        )
+        if not sub:
+            raise HTTPException(status_code=404, detail="Submission not found")
+
+        text = f"{sub['title']}\n\n{sub['body_md'] or sub['description'] or ''}"
+        result = await ai_tag(text)
+
+        await conn.execute(
+            """
+            UPDATE submissions
+            SET status = 'agent_review', agent_notes = $2
+            WHERE id = $1
+            """,
+            submission_id,
+            json.dumps({"suggested_tags": result.tags, "summary": result.summary}),
+        )
+
+        await conn.execute(
+            """
+            INSERT INTO review_log (submission_id, agent_name, action, notes)
+            VALUES ($1, 'content-reviewer', 'review', $2)
+            """,
+            submission_id,
+            f"Tags: {result.tags}, Summary: {result.summary}",
+        )
+
+    return {
+        "submission_id": submission_id,
+        "status": "agent_review",
+        "suggested_tags": result.tags,
+        "summary": result.summary,
+    }
+
+
+# ── Posts management ───────────────────────────────────────────
+@app.get("/admin/posts", response_model=list[AdminPostOut])
+async def admin_list_posts(
+    status: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    _=Depends(verify_admin_key),
+):
+    where = ""
+    params = []
+    if status:
+        where = "WHERE status = $1"
+        params.append(status)
+
+    sql = f"""
+        SELECT id, created_at, title, body_md, excerpt, author_name,
+               slug, status, published_at, tags, submission_id, editor_notes
+        FROM raw_posts
+        {where}
+        ORDER BY created_at DESC
+        LIMIT ${2 if status else 1} OFFSET ${3 if status else 2}
+    """
+    params.extend([limit, offset])
+
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(sql, *params)
+    return [dict(r) for r in rows]
+
+
+@app.post("/admin/posts/{post_id}/publish")
+async def publish_post(
+    post_id: int,
+    _=Depends(verify_admin_key),
+):
+    async with pool.acquire() as conn:
+        post = await conn.fetchrow(
+            "SELECT * FROM raw_posts WHERE id = $1", post_id
+        )
+        if not post:
+            raise HTTPException(status_code=404, detail="Post not found")
+        if post["status"] not in ("draft", "approved"):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot publish post in status '{post['status']}'",
+            )
+
+        await conn.execute(
+            """
+            UPDATE raw_posts
+            SET status = 'published', published_at = now(), updated_at = now()
+            WHERE id = $1
+            """,
+            post_id,
+        )
+
+    return {"post_id": post_id, "status": "published"}
+
+
+@app.post("/admin/posts/{post_id}/unpublish")
+async def unpublish_post(
+    post_id: int,
+    _=Depends(verify_admin_key),
+):
+    async with pool.acquire() as conn:
+        post = await conn.fetchrow(
+            "SELECT * FROM raw_posts WHERE id = $1", post_id
+        )
+        if not post:
+            raise HTTPException(status_code=404, detail="Post not found")
+        if post["status"] != "published":
+            raise HTTPException(
+                status_code=400, detail="Post is not published"
+            )
+
+        await conn.execute(
+            "UPDATE raw_posts SET status = 'draft', updated_at = now() WHERE id = $1",
+            post_id,
+        )
+
+    return {"post_id": post_id, "status": "draft"}
+
+
+# ── AI Director (admin only) ───────────────────────────────────
+@app.post("/admin/ai/suggest-tags", response_model=AITagResponse)
+async def admin_suggest_tags(
+    request: AITagRequest,
+    _=Depends(verify_admin_key),
+):
     return await ai_tag(request.text)
 
 
-@app.post("/ai/summarize")
-async def summarize(request: AITagRequest):
+@app.post("/admin/ai/summarize")
+async def admin_summarize(
+    request: AITagRequest,
+    _=Depends(verify_admin_key),
+):
     result = await ai_tag(request.text)
     if result.summary:
         return {"summary": result.summary}

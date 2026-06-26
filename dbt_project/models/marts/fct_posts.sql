@@ -9,7 +9,7 @@ select
     excerpt,
     author_name,
     slug,
-    published,
+    status,
     published_at,
     tags,
 
@@ -36,4 +36,4 @@ select
     created_at,
     updated_at
 from staged
-where published = true
+where status = 'published'
